@@ -38,6 +38,7 @@ const ar = {
     preorder: "للطلبيات المسبقة (أعراس، أعياد، مناسبات) راسلونا على واتساب يومين قبل على الأقل.",
   },
   footer: "جميع الحقوق محفوظة",
+  staffArea: "فضاء الفريق",
 };
 
 const fr: typeof ar = {
@@ -78,6 +79,7 @@ const fr: typeof ar = {
     preorder: "Pour les commandes (mariages, Aïd, fêtes), écrivez-nous sur WhatsApp au moins deux jours avant.",
   },
   footer: "Tous droits réservés",
+  staffArea: "Espace équipe",
 };
 
 const dictionaries = { ar, fr };

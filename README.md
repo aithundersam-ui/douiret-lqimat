@@ -8,6 +8,27 @@ The site is bilingual (Arabic at `/ar/`, French at `/fr/`), mobile-first, and ex
 
 - `/ar/`, `/fr/`: home (what we do, featured menu, team, contact)
 - `/ar/menu/`, `/fr/menu/`: full menu with category filters
+- `/ar/admin/`, `/fr/admin/`: staff area (sign-in required), with:
+  - **Dashboard**: revenue, cost of goods, waste, expenses, net profit, waste %, made-here vs resale, daily revenue chart, best sellers, most waste, upcoming pre-orders, money owed to suppliers
+  - **Today**: per product, what was made (or bought), sold and wasted, with what should be left
+  - **Orders**, **Products**, **Purchases**, **Expenses**: add, edit and delete records
+
+## The database (Supabase)
+
+The staff area stores its data in [Supabase](https://supabase.com) (free plan). Until it is connected, the staff area runs in **demo mode**: sample numbers, kept only in the browser.
+
+To connect it, once:
+
+1. Create a free project on supabase.com.
+2. In the project, open **SQL Editor**, paste the contents of `supabase/schema.sql` and click **Run**.
+3. In **Authentication → Users**, click **Add user** for each staff member (email and password).
+4. In **Project Settings → API**, copy the **Project URL** and the **anon public** key.
+5. In Netlify, open **Site configuration → Environment variables** and add:
+   - `NEXT_PUBLIC_SUPABASE_URL` = the Project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = the anon public key
+6. Redeploy the site (Deploys → Trigger deploy).
+
+The anon key is meant to be public; the data is protected by the row-level security rules in `schema.sql`, which only let signed-in staff read or change it.
 
 ## Editing the content
 

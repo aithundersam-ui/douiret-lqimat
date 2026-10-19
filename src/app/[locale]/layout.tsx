@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { getDictionary } from "@/lib/dictionary";
 import { dir, isLocale, locales } from "@/lib/i18n";
 import "../globals.css";
@@ -38,16 +35,10 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const t = getDictionary(locale);
 
   return (
     <html lang={locale} dir={dir(locale)} className={cairo.variable}>
-      <body>
-        <Header locale={locale} t={t} />
-        <main>{children}</main>
-        <Footer locale={locale} t={t} />
-        <WhatsAppButton label={t.hero.order} />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
