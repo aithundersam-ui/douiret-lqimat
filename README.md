@@ -33,4 +33,4 @@ npm run build    # static site in out/
 
 ## Deploying
 
-Import the repository on Vercel (or Netlify / Cloudflare Pages); no settings are needed. Set `NEXT_PUBLIC_SITE_URL` to the final address (for example `https://douiretlqimat.com`) so link previews on WhatsApp and Facebook show the logo.
+The site is hosted on Netlify. `netlify.toml` holds the build settings, so importing the repository on Netlify needs no extra setup, and every push to `main` goes live automatically. Set the `NEXT_PUBLIC_SITE_URL` environment variable in Netlify to the final address (for example `https://douiretlqimat.com`) so link previews on WhatsApp and Facebook show the logo.

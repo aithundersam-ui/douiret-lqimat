@@ -1,0 +1,14 @@
+# Netlify: build the static export and serve the out/ folder.
+[build]
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Visitors who land on an unknown path go to the Arabic home page.
+[[redirects]]
+  from = "/*"
+  to = "/ar/"
+  status = 302
+  force = false
