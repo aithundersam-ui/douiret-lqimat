@@ -1,0 +1,66 @@
+"use client";
+
+import Image from "next/image";
+import { useState } from "react";
+import type { CategoryId, Product, categories as allCategories } from "@/data/menu";
+import type { Dictionary } from "@/lib/dictionary";
+import { formatPrice, type Locale } from "@/lib/i18n";
+
+export function MenuGrid({
+  locale,
+  t,
+  items,
+  categories,
+  showFilters,
+}: {
+  locale: Locale;
+  t: Dictionary;
+  items: Product[];
+  categories: typeof allCategories;
+  showFilters: boolean;
+}) {
+  const [active, setActive] = useState<CategoryId | "all">("all");
+  const visible = active === "all" ? items : items.filter((p) => p.category === active);
+
+  return (
+    <>
+      {showFilters && (
+        <div className="menu__filters" role="tablist">
+          <button role="tab" aria-selected={active === "all"} onClick={() => setActive("all")}>
+            {t.menu.all}
+          </button>
+          {categories.map((c) => (
+            <button key={c.id} role="tab" aria-selected={active === c.id} onClick={() => setActive(c.id)}>
+              {c.name[locale]}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {visible.length === 0 ? (
+        <p className="center">{t.menu.empty}</p>
+      ) : (
+        <ul className="menu__grid">
+          {visible.map((p) => (
+            <li key={p.id} className="card menu__item">
+              <div className="menu__photo">
+                {p.image ? (
+                  <Image src={p.image} alt={p.name[locale]} fill sizes="(max-width: 600px) 50vw, 240px" />
+                ) : (
+                  <Image src="/brand/logo.webp" alt="" width={96} height={96} className="menu__placeholder" />
+                )}
+              </div>
+              <div className="menu__body">
+                <h3>{p.name[locale]}</h3>
+                {p.description && <p>{p.description[locale]}</p>}
+                <p className="menu__price">
+                  {formatPrice(p.price, locale)} <small>{t.menu.perUnit[p.unit]}</small>
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
