@@ -1,8 +1,11 @@
-import { shop } from "@/data/shop";
+"use client";
+
+import { useSiteData } from "./SiteData";
 
 export function WhatsAppButton({ label }: { label: string }) {
+  const { content } = useSiteData();
   return (
-    <a href={`https://wa.me/${shop.whatsapp}`} className="whatsapp" target="_blank" rel="noopener" aria-label={label}>
+    <a href={`https://wa.me/${content.whatsapp}`} className="whatsapp" target="_blank" rel="noopener" aria-label={label}>
       <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden>
         <path
           fill="currentColor"

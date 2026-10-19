@@ -45,7 +45,9 @@ export function MenuGrid({
             <li key={p.id} className="card menu__item">
               <div className="menu__photo">
                 {p.image ? (
-                  <Image src={p.image} alt={p.name[locale]} fill sizes="(max-width: 600px) 50vw, 240px" />
+                  // Photos can live on Supabase Storage, so use a plain <img>.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.image} alt={p.name[locale]} loading="lazy" />
                 ) : (
                   <Image src="/brand/logo.webp" alt="" width={96} height={96} className="menu__placeholder" />
                 )}

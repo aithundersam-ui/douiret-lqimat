@@ -12,6 +12,11 @@ export type Product = {
   price: number;
   unit_cost: number;
   active: boolean;
+  // Shown on the public website.
+  description_ar: string;
+  description_fr: string;
+  featured: boolean;
+  image_url: string;
 };
 
 export type DailyCount = {
@@ -69,12 +74,23 @@ export type Expense = {
   amount: number;
 };
 
+export type TeamMemberRow = {
+  id: string;
+  name_ar: string;
+  name_fr: string;
+  role_ar: string;
+  role_fr: string;
+  photo_url: string;
+  sort: number;
+};
+
 export type Tables = {
   products: Product;
   daily_counts: DailyCount;
   orders: Order;
   purchases: Purchase;
   expenses: Expense;
+  team_members: TeamMemberRow;
 };
 
 export type TableName = keyof Tables;
@@ -88,4 +104,5 @@ export const dateColumn: Record<TableName, string | null> = {
   orders: "due_date",
   purchases: "day",
   expenses: "day",
+  team_members: null,
 };

@@ -34,6 +34,7 @@ export function AdminShell({ locale, children }: { locale: Locale; children: Rea
     { href: `${base}/products/`, label: t.nav.products },
     { href: `${base}/purchases/`, label: t.nav.purchases },
     { href: `${base}/expenses/`, label: t.nav.expenses },
+    { href: `${base}/website/`, label: t.nav.website },
   ];
   const other: Locale = locale === "ar" ? "fr" : "ar";
   const current = pathname.endsWith("/") ? pathname : `${pathname}/`;

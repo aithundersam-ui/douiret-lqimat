@@ -1,22 +1,25 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { shop } from "@/data/shop";
 import type { Dictionary } from "@/lib/dictionary";
 import type { Locale } from "@/lib/i18n";
+import { useSiteData } from "./SiteData";
 
 export function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
+  const { content } = useSiteData();
   return (
     <section className="hero">
       <div className="container hero__inner">
         <div className="hero__text">
-          <p className="eyebrow">{t.tagline}</p>
-          <h1>{t.hero.title}</h1>
-          <p>{t.hero.text}</p>
+          <p className="eyebrow">{content.tagline[locale]}</p>
+          <h1>{content.heroTitle[locale]}</h1>
+          <p>{content.heroText[locale]}</p>
           <div className="hero__actions">
             <Link href={`/${locale}/menu/`} className="btn btn--primary">
               {t.hero.seeMenu}
             </Link>
-            <a href={`https://wa.me/${shop.whatsapp}`} className="btn btn--ghost" target="_blank" rel="noopener">
+            <a href={`https://wa.me/${content.whatsapp}`} className="btn btn--ghost" target="_blank" rel="noopener">
               {t.hero.order}
             </a>
           </div>

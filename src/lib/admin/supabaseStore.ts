@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { HomeContent } from "@/lib/site/content";
 import type { NewRow, Store } from "./store";
 import { dateColumn, type Range, type TableName, type Tables } from "./types";
 
@@ -59,6 +60,26 @@ export function createSupabaseStore(url: string, key: string): Store {
 
     async saveDailyCounts(rows) {
       if (rows.length) check(await db.from("daily_counts").upsert(rows as never, { onConflict: "day,product_id" }));
+    },
+
+    async getContent() {
+      const rows = check(await db.from("site_content").select("value").eq("key", "home").limit(1));
+      return (rows?.[0] as { value: Partial<HomeContent> } | undefined)?.value ?? null;
+    },
+
+    async saveContent(content) {
+      check(
+        await db
+          .from("site_content")
+          .upsert({ key: "home", value: content, updated_at: new Date().toISOString() } as never, { onConflict: "key" }),
+      );
+    },
+
+    async uploadImage(image) {
+      const path = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.jpg`;
+      const { error } = await db.storage.from("site").upload(path, image, { contentType: image.type || "image/jpeg" });
+      if (error) throw new Error(error.message);
+      return db.storage.from("site").getPublicUrl(path).data.publicUrl;
     },
   };
 }
