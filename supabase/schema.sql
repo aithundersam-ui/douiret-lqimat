@@ -128,11 +128,28 @@ create table if not exists public.settings (
   updated_at timestamptz not null default now()
 );
 
+-- Staff accounts: who is the master admin (manages accounts) and who is blocked.
+-- Changed only by the Netlify function behind the Members screen (it uses the secret key).
+create table if not exists public.staff_profiles (
+  user_id uuid primary key,
+  email text not null default '',
+  name text not null default '',
+  role text not null default 'staff' check (role in ('master', 'staff')),
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists invoices_issue_date_idx on public.invoices (issue_date);
 create index if not exists daily_counts_day_idx on public.daily_counts (day);
 create index if not exists orders_due_date_idx on public.orders (due_date);
 create index if not exists purchases_day_idx on public.purchases (day);
 create index if not exists expenses_day_idx on public.expenses (day);
+
+-- A blocked account loses access at once, even before its sign-in session runs out.
+create or replace function public.is_active_staff() returns boolean
+  language sql stable security definer set search_path = public as $$
+  select not exists (select 1 from public.staff_profiles where user_id = auth.uid() and not active)
+$$;
 
 -- Security: only signed-in staff can read or change anything.
 -- Staff accounts are added in Supabase: Authentication → Users → Add user.
@@ -144,7 +161,7 @@ begin
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists "staff full access" on public.%I', t);
     execute format(
-      'create policy "staff full access" on public.%I for all to authenticated using (true) with check (true)', t);
+      'create policy "staff full access" on public.%I for all to authenticated using (public.is_active_staff()) with check (public.is_active_staff())', t);
   end loop;
 end $$;
 
@@ -152,11 +169,31 @@ end $$;
 alter table public.invoices enable row level security;
 drop policy if exists "staff full access" on public.invoices;
 drop policy if exists "staff read invoices" on public.invoices;
-create policy "staff read invoices" on public.invoices for select to authenticated using (true);
+create policy "staff read invoices" on public.invoices for select to authenticated using (public.is_active_staff());
 drop policy if exists "staff create invoices" on public.invoices;
-create policy "staff create invoices" on public.invoices for insert to authenticated with check (true);
+create policy "staff create invoices" on public.invoices for insert to authenticated with check (public.is_active_staff());
 drop policy if exists "staff correct invoices" on public.invoices;
-create policy "staff correct invoices" on public.invoices for update to authenticated using (true) with check (true);
+create policy "staff correct invoices" on public.invoices for update to authenticated using (public.is_active_staff()) with check (public.is_active_staff());
+
+-- Each staff member can read their own profile (to know if they are master). Nobody can change it from the app.
+alter table public.staff_profiles enable row level security;
+drop policy if exists "read own profile" on public.staff_profiles;
+create policy "read own profile" on public.staff_profiles for select to authenticated using (user_id = auth.uid());
+
+-- Existing logins get a profile; if there is no master yet, the oldest login becomes master.
+-- To choose the master yourself: update public.staff_profiles set role = 'master' where email = 'you@example.com';
+do $$
+begin
+  if to_regclass('auth.users') is not null then
+    insert into public.staff_profiles (user_id, email)
+      select id, coalesce(email, '') from auth.users
+      on conflict (user_id) do nothing;
+    if not exists (select 1 from public.staff_profiles where role = 'master' and active) then
+      update public.staff_profiles set role = 'master'
+        where user_id = (select id from auth.users order by created_at limit 1);
+    end if;
+  end if;
+end $$;
 
 drop policy if exists "public can read active products" on public.products;
 create policy "public can read active products" on public.products

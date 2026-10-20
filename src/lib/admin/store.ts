@@ -1,6 +1,6 @@
 import type { HomeContent } from "@/lib/site/content";
 import type { BusinessDetails } from "./invoices";
-import type { Range, TableName, Tables } from "./types";
+import type { Member, MemberChanges, Range, StaffRole, TableName, Tables } from "./types";
 
 export type NewRow<T extends TableName> = Omit<Tables[T], "id">;
 
@@ -26,6 +26,13 @@ export interface Store {
   /** The shop's details printed on invoices (null if never saved). */
   getBusiness(): Promise<Partial<BusinessDetails> | null>;
   saveBusiness(details: BusinessDetails): Promise<void>;
+  /** The signed-in person's role: only the master admin manages accounts. */
+  currentRole(): Promise<StaffRole>;
+  /** Staff accounts, master admin only. `me` is the signed-in account's id. */
+  listMembers(): Promise<{ members: Member[]; me: string }>;
+  createMember(member: { email: string; password: string; name: string; role: StaffRole }): Promise<void>;
+  updateMember(id: string, changes: MemberChanges): Promise<void>;
+  deleteMember(id: string): Promise<void>;
   /** Store a photo for the website and return its public address. */
   uploadImage(image: Blob): Promise<string>;
 }

@@ -4,13 +4,13 @@ import type { HomeContent, ProductRow, TeamRow } from "@/lib/site/content";
 import { addDays, isoDay } from "./dates";
 import type { BusinessDetails } from "./invoices";
 import type { NewRow, Store } from "./store";
-import { dateColumn, type DailyCount, type Range, type TableName, type Tables } from "./types";
+import { dateColumn, type DailyCount, type Member, type Range, type TableName, type Tables } from "./types";
 
 // Demo mode: data lives only in this browser, seeded with sample numbers so
 // every screen has something to show. Used until Supabase is configured.
 
 const KEY = "douiret-demo-v3";
-type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent; business?: BusinessDetails };
+type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent; business?: BusinessDetails; members?: Member[] };
 
 function id() {
   return Math.random().toString(36).slice(2, 10);
@@ -142,6 +142,13 @@ export function createDemoStore(): Store {
     user = sessionStorage.getItem(KEY + ":user");
   } catch {}
 
+  function members(): Member[] {
+    return (data.members ??= [
+      { id: "demo", email: "demo@douiret-lqimat.dz", name: "Demo", role: "master", active: true, lastSignIn: new Date().toISOString() },
+      { id: id(), email: "amina@douiret-lqimat.dz", name: "Amina", role: "staff", active: true, lastSignIn: null },
+    ]);
+  }
+
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify(data));
@@ -196,6 +203,29 @@ export function createDemoStore(): Store {
     },
     async saveContent(content) {
       data.site_content = content;
+      save();
+    },
+    // Demo accounts are only a list in this browser; the demo user is the master admin.
+    async currentRole() {
+      return "master";
+    },
+    async listMembers() {
+      return { members: members(), me: "demo" };
+    },
+    async createMember({ email, name, role }) {
+      if (members().some((m) => m.email === email.toLowerCase())) throw new Error("A user with this email address has already been registered");
+      members().push({ id: id(), email: email.toLowerCase(), name, role, active: true, lastSignIn: null });
+      save();
+    },
+    async updateMember(memberId, { name, role, active }) {
+      if (memberId === "demo" && (role === "staff" || active === false)) throw new Error("You can't remove your own master access.");
+      const m = members().find((x) => x.id === memberId);
+      if (m) Object.assign(m, name !== undefined && { name }, role && { role }, active !== undefined && { active });
+      save();
+    },
+    async deleteMember(memberId) {
+      if (memberId === "demo") throw new Error("You can't delete your own account.");
+      data.members = members().filter((m) => m.id !== memberId);
       save();
     },
     async getBusiness() {
