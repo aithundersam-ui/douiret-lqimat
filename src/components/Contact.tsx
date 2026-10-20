@@ -1,8 +1,11 @@
-import { shop } from "@/data/shop";
+"use client";
+
 import type { Dictionary } from "@/lib/dictionary";
-import type { Locale } from "@/lib/i18n";
+import { pick, type Locale } from "@/lib/i18n";
+import { useSiteData } from "./SiteData";
 
 export function Contact({ locale, t }: { locale: Locale; t: Dictionary }) {
+  const { content: c } = useSiteData();
   return (
     <section id="contact" className="section section--brand">
       <div className="container">
@@ -11,34 +14,46 @@ export function Contact({ locale, t }: { locale: Locale; t: Dictionary }) {
           <div>
             <h3>{t.contact.address}</h3>
             <p>
-              <a href={shop.mapUrl} target="_blank" rel="noopener">
-                {shop.address[locale]}
+              <a href={c.mapUrl} target="_blank" rel="noopener">
+                {pick(c.address, locale)}
               </a>
             </p>
           </div>
           <div>
             <h3>{t.contact.hours}</h3>
-            {shop.hours.map((h) => (
-              <p key={h.days.fr}>
-                {h.days[locale]} <bdi dir="ltr">{h.time}</bdi>
+            {c.hours.map((h, i) => (
+              <p key={i}>
+                {pick(h.days, locale)} <bdi dir="ltr">{h.time}</bdi>
               </p>
             ))}
           </div>
           <div>
             <h3>{t.contact.phone}</h3>
             <p>
-              <a href={`tel:${shop.phone.replace(/\s/g, "")}`} dir="ltr">
-                {shop.phone}
+              <a href={`tel:${c.phone.replace(/\s/g, "")}`} dir="ltr">
+                {c.phone}
               </a>
             </p>
-            <h3>{t.contact.follow}</h3>
-            <p className="contact__social">
-              <a href={shop.social.instagram} target="_blank" rel="noopener">Instagram</a>
-              <a href={shop.social.facebook} target="_blank" rel="noopener">Facebook</a>
-            </p>
+            {(c.instagram || c.facebook) && (
+              <>
+                <h3>{t.contact.follow}</h3>
+                <p className="contact__social">
+                  {c.instagram && (
+                    <a href={c.instagram} target="_blank" rel="noopener">
+                      Instagram
+                    </a>
+                  )}
+                  {c.facebook && (
+                    <a href={c.facebook} target="_blank" rel="noopener">
+                      Facebook
+                    </a>
+                  )}
+                </p>
+              </>
+            )}
           </div>
         </div>
-        <p className="contact__note">{t.contact.preorder}</p>
+        <p className="contact__note">{pick(c.preorderNote, locale)}</p>
       </div>
     </section>
   );

@@ -69,6 +69,37 @@ create table if not exists public.expenses (
   created_at timestamptz not null default now()
 );
 
+-- Website content edited from the staff area (Website screen).
+alter table public.products add column if not exists description_ar text not null default '';
+alter table public.products add column if not exists description_fr text not null default '';
+alter table public.products add column if not exists featured boolean not null default false;
+alter table public.products add column if not exists image_url text not null default '';
+
+-- Texts, contact details and hours of the home page, stored as one JSON value.
+create table if not exists public.site_content (
+  key text primary key,
+  value jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.team_members (
+  id uuid primary key default gen_random_uuid(),
+  name_ar text not null default '',
+  name_fr text not null default '',
+  role_ar text not null default '',
+  role_fr text not null default '',
+  photo_url text not null default '',
+  sort integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+-- English (the website's main language) next to Arabic and French.
+alter table public.products add column if not exists name_en text not null default '';
+alter table public.products add column if not exists description_en text not null default '';
+alter table public.products alter column name_ar set default '';
+alter table public.team_members add column if not exists name_en text not null default '';
+alter table public.team_members add column if not exists role_en text not null default '';
+
 create index if not exists daily_counts_day_idx on public.daily_counts (day);
 create index if not exists orders_due_date_idx on public.orders (due_date);
 create index if not exists purchases_day_idx on public.purchases (day);
@@ -80,7 +111,7 @@ create index if not exists expenses_day_idx on public.expenses (day);
 do $$
 declare t text;
 begin
-  foreach t in array array['products', 'daily_counts', 'orders', 'purchases', 'expenses'] loop
+  foreach t in array array['products', 'daily_counts', 'orders', 'purchases', 'expenses', 'site_content', 'team_members'] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists "staff full access" on public.%I', t);
     execute format(
@@ -91,3 +122,30 @@ end $$;
 drop policy if exists "public can read active products" on public.products;
 create policy "public can read active products" on public.products
   for select to anon using (active);
+
+drop policy if exists "public can read site content" on public.site_content;
+create policy "public can read site content" on public.site_content
+  for select to anon using (true);
+
+drop policy if exists "public can read team" on public.team_members;
+create policy "public can read team" on public.team_members
+  for select to anon using (true);
+
+-- Photo storage: a public "site" bucket that only signed-in staff can write to.
+-- (Skipped automatically outside Supabase, where the storage schema doesn't exist.)
+do $$
+begin
+  if to_regclass('storage.buckets') is not null then
+    insert into storage.buckets (id, name, public) values ('site', 'site', true)
+      on conflict (id) do update set public = true;
+    drop policy if exists "staff upload site photos" on storage.objects;
+    create policy "staff upload site photos" on storage.objects
+      for insert to authenticated with check (bucket_id = 'site');
+    drop policy if exists "staff change site photos" on storage.objects;
+    create policy "staff change site photos" on storage.objects
+      for update to authenticated using (bucket_id = 'site');
+    drop policy if exists "staff delete site photos" on storage.objects;
+    create policy "staff delete site photos" on storage.objects
+      for delete to authenticated using (bucket_id = 'site');
+  end if;
+end $$;

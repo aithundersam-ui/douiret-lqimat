@@ -3,9 +3,9 @@
 import { createContext, useContext } from "react";
 import type { AdminDictionary } from "@/lib/admin/dictionary";
 import type { Store } from "@/lib/admin/store";
-import type { Locale } from "@/lib/i18n";
+import type { AdminLocale } from "@/lib/i18n";
 
-export type AdminContextValue = { store: Store; t: AdminDictionary; locale: Locale };
+export type AdminContextValue = { store: Store; t: AdminDictionary; locale: AdminLocale };
 
 export const AdminContext = createContext<AdminContextValue | null>(null);
 

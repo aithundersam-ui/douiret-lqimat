@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { resizeImage } from "@/lib/admin/image";
 import type { NewRow } from "@/lib/admin/store";
 import type { TableName, Tables } from "@/lib/admin/types";
 import { useAdmin } from "./AdminContext";
@@ -9,7 +10,7 @@ import { useRows } from "./useRows";
 export type Field<R> = {
   key: keyof R & string;
   label: string;
-  type: "text" | "textarea" | "number" | "date" | "select" | "checkbox" | "tel";
+  type: "text" | "textarea" | "number" | "date" | "select" | "checkbox" | "tel" | "image";
   options?: { value: string; label: string }[];
   required?: boolean;
 };
@@ -31,6 +32,7 @@ export function CrudPage<T extends TableName>({
   sort,
   sections,
   header,
+  headingLevel = 1,
 }: {
   table: T;
   title: string;
@@ -40,6 +42,7 @@ export function CrudPage<T extends TableName>({
   sort?: (a: Tables[T], b: Tables[T]) => number;
   sections?: Section<Tables[T]>[];
   header?: (rows: Tables[T][]) => React.ReactNode;
+  headingLevel?: 1 | 2;
 }) {
   const { store, t } = useAdmin();
   const { rows, error, reload } = useRows(table);
@@ -87,7 +90,7 @@ export function CrudPage<T extends TableName>({
   return (
     <>
       <div className="admin-head">
-        <h1>{title}</h1>
+        {headingLevel === 1 ? <h1>{title}</h1> : <h2>{title}</h2>}
         <button className="btn btn--primary" onClick={() => open(null)}>
           + {t.common.add}
         </button>
@@ -170,6 +173,7 @@ export function CrudPage<T extends TableName>({
 }
 
 function FieldInput<R>({ field, value, onChange }: { field: Field<R>; value: unknown; onChange: (v: unknown) => void }) {
+  if (field.type === "image") return <ImageInput label={field.label} value={String(value ?? "")} onChange={onChange} />;
   if (field.type === "checkbox") {
     return (
       <label className="admin-check">
@@ -222,5 +226,51 @@ function FieldInput<R>({ field, value, onChange }: { field: Field<R>; value: unk
       {field.label}
       {input}
     </label>
+  );
+}
+
+/** Photo picker: shrinks the photo, uploads it and keeps its address. */
+export function ImageInput({ label, value, onChange }: { label: string; value: string; onChange: (url: string) => void }) {
+  const { store, t } = useAdmin();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function pick(file: File | undefined) {
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    try {
+      onChange(await store.uploadImage(await resizeImage(file)));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="admin-image">
+      <span>{label}</span>
+      <div className="admin-image__row">
+        <div className="admin-image__preview">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {value ? <img src={value} alt="" /> : <span aria-hidden>📷</span>}
+        </div>
+        <label className="btn btn--ghost">
+          {busy ? t.common.saving : value ? t.website.changePhoto : t.website.addPhoto}
+          <input type="file" accept="image/*" hidden disabled={busy} onChange={(e) => pick(e.target.files?.[0])} />
+        </label>
+        {value && !busy && (
+          <button type="button" className="admin-link" onClick={() => onChange("")}>
+            {t.website.removePhoto}
+          </button>
+        )}
+      </div>
+      {error && (
+        <p className="admin-error" role="alert">
+          {t.common.error} {error}
+        </p>
+      )}
+    </div>
   );
 }

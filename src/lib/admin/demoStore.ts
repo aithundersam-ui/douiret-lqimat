@@ -1,4 +1,6 @@
 import { products as menu } from "@/data/menu";
+import { team as defaultTeam } from "@/data/team";
+import type { HomeContent, ProductRow, TeamRow } from "@/lib/site/content";
 import { addDays, isoDay } from "./dates";
 import type { NewRow, Store } from "./store";
 import { dateColumn, type DailyCount, type Range, type TableName, type Tables } from "./types";
@@ -6,8 +8,8 @@ import { dateColumn, type DailyCount, type Range, type TableName, type Tables } 
 // Demo mode: data lives only in this browser, seeded with sample numbers so
 // every screen has something to show. Used until Supabase is configured.
 
-const KEY = "douiret-demo-v1";
-type Data = { [T in TableName]: Tables[T][] };
+const KEY = "douiret-demo-v3";
+type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent };
 
 function id() {
   return Math.random().toString(36).slice(2, 10);
@@ -26,6 +28,7 @@ function seed(): Data {
   const rand = rng(42);
   const products = menu.map((p) => ({
     id: p.id,
+    name_en: p.name.en,
     name_ar: p.name.ar,
     name_fr: p.name.fr,
     category: p.category,
@@ -34,6 +37,11 @@ function seed(): Data {
     price: p.price,
     unit_cost: Math.round(p.price * (p.category === "drinks" ? 0.7 : 0.4)),
     active: true,
+    description_en: p.description?.en ?? "",
+    description_ar: p.description?.ar ?? "",
+    description_fr: p.description?.fr ?? "",
+    featured: Boolean(p.featured),
+    image_url: p.image ?? "",
   }));
 
   const daily_counts: DailyCount[] = [];
@@ -62,6 +70,17 @@ function seed(): Data {
       { id: id(), day: addDays(today, -4), supplier: "Amandes El Harrach", item: "Amandes 5 kg", total: 11000, paid: 6000 },
       { id: id(), day: addDays(today, -2), supplier: "Grossiste Belcourt", item: "Miel 3 kg, beurre 4 kg", total: 9400, paid: 5000 },
     ],
+    team_members: defaultTeam.map((m, i) => ({
+      id: id(),
+      name_en: m.name.en,
+      name_ar: m.name.ar,
+      name_fr: m.name.fr,
+      role_en: m.role.en,
+      role_ar: m.role.ar,
+      role_fr: m.role.fr,
+      photo_url: m.photo ?? "",
+      sort: i + 1,
+    })),
     expenses: [
       { id: id(), day: addDays(today, -20), category: "rent", description: "Loyer du mois", amount: 60000 },
       { id: id(), day: addDays(today, -10), category: "electricity", description: "Sonelgaz", amount: 8500 },
@@ -78,8 +97,21 @@ function load(): Data {
   return seed();
 }
 
+/** What the public pages need, read from the demo data (null if the demo was never opened). */
+export function readDemoSiteParts(): { content?: HomeContent; products: ProductRow[]; team: TeamRow[] } | null {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as Data;
+    return { content: data.site_content, products: data.products, team: data.team_members };
+  } catch {
+    return null;
+  }
+}
+
 export function createDemoStore(): Store {
   let data = load();
+  save();
   let user: string | null = null;
   try {
     user = sessionStorage.getItem(KEY + ":user");
@@ -88,7 +120,10 @@ export function createDemoStore(): Store {
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify(data));
-    } catch {}
+    } catch (err) {
+      // Usually the browser's storage is full (too many demo photos).
+      if ((err as Error).name === "QuotaExceededError") throw err;
+    }
   }
 
   return {
@@ -129,6 +164,22 @@ export function createDemoStore(): Store {
       data = { ...data, [table]: (data[table] as { id: string }[]).filter((r) => r.id !== rowId) };
       if (table === "products") data.daily_counts = data.daily_counts.filter((c) => c.product_id !== rowId);
       save();
+    },
+    async getContent() {
+      return data.site_content ?? null;
+    },
+    async saveContent(content) {
+      data.site_content = content;
+      save();
+    },
+    async uploadImage(image) {
+      // Demo mode keeps photos inside the browser as data URLs.
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(image);
+      });
     },
     async saveDailyCounts(rows) {
       for (const row of rows) {

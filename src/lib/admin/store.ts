@@ -1,3 +1,4 @@
+import type { HomeContent } from "@/lib/site/content";
 import type { Range, TableName, Tables } from "./types";
 
 export type NewRow<T extends TableName> = Omit<Tables[T], "id">;
@@ -18,6 +19,11 @@ export interface Store {
   remove(table: TableName, id: string): Promise<void>;
   /** Insert or replace the counts for (day, product). */
   saveDailyCounts(rows: Omit<Tables["daily_counts"], "id">[]): Promise<void>;
+  /** The home page texts and contact details saved from the Website screen (null if never saved). */
+  getContent(): Promise<Partial<HomeContent> | null>;
+  saveContent(content: HomeContent): Promise<void>;
+  /** Store a photo for the website and return its public address. */
+  uploadImage(image: Blob): Promise<string>;
 }
 
 let store: Promise<Store> | null = null;

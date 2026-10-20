@@ -8,8 +8,8 @@ export type TeamMember = {
 
 // PLACEHOLDER: replace with the real team (only people who agree to be shown).
 export const team: TeamMember[] = [
-  { name: { ar: "الحاجة", fr: "El Hadja" }, role: { ar: "صاحبة الوصفات", fr: "Gardienne des recettes" } },
-  { name: { ar: "الاسم", fr: "Prénom" }, role: { ar: "حلواني", fr: "Pâtissier" } },
-  { name: { ar: "الاسم", fr: "Prénom" }, role: { ar: "المملحات والفرن", fr: "Salés et four" } },
-  { name: { ar: "الاسم", fr: "Prénom" }, role: { ar: "البيع والطلبيات", fr: "Vente et commandes" } },
+  { name: { en: "El Hadja", ar: "الحاجة", fr: "El Hadja" }, role: { en: "Keeper of the recipes", ar: "صاحبة الوصفات", fr: "Gardienne des recettes" } },
+  { name: { en: "Name", ar: "الاسم", fr: "Prénom" }, role: { en: "Pastry chef", ar: "حلواني", fr: "Pâtissier" } },
+  { name: { en: "Name", ar: "الاسم", fr: "Prénom" }, role: { en: "Savouries and oven", ar: "المملحات والفرن", fr: "Salés et four" } },
+  { name: { en: "Name", ar: "الاسم", fr: "Prénom" }, role: { en: "Sales and orders", ar: "البيع والطلبيات", fr: "Vente et commandes" } },
 ];

@@ -6,9 +6,9 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# Visitors who land on an unknown path go to the Arabic home page.
+# Visitors who land on an unknown path go to the English home page.
 [[redirects]]
   from = "/*"
-  to = "/ar/"
+  to = "/en/"
   status = 302
   force = false

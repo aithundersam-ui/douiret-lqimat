@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import type { CategoryId, Product, categories as allCategories } from "@/data/menu";
 import type { Dictionary } from "@/lib/dictionary";
-import { formatPrice, type Locale } from "@/lib/i18n";
+import { formatPrice, pick, type Locale } from "@/lib/i18n";
 
 export function MenuGrid({
   locale,
@@ -31,7 +31,7 @@ export function MenuGrid({
           </button>
           {categories.map((c) => (
             <button key={c.id} role="tab" aria-selected={active === c.id} onClick={() => setActive(c.id)}>
-              {c.name[locale]}
+              {pick(c.name, locale)}
             </button>
           ))}
         </div>
@@ -45,14 +45,16 @@ export function MenuGrid({
             <li key={p.id} className="card menu__item">
               <div className="menu__photo">
                 {p.image ? (
-                  <Image src={p.image} alt={p.name[locale]} fill sizes="(max-width: 600px) 50vw, 240px" />
+                  // Photos can live on Supabase Storage, so use a plain <img>.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.image} alt={pick(p.name, locale)} loading="lazy" />
                 ) : (
                   <Image src="/brand/logo.webp" alt="" width={96} height={96} className="menu__placeholder" />
                 )}
               </div>
               <div className="menu__body">
-                <h3>{p.name[locale]}</h3>
-                {p.description && <p>{p.description[locale]}</p>}
+                <h3>{pick(p.name, locale)}</h3>
+                {p.description && <p>{pick(p.description, locale)}</p>}
                 <p className="menu__price">
                   {formatPrice(p.price, locale)} <small>{t.menu.perUnit[p.unit]}</small>
                 </p>

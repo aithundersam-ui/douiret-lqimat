@@ -139,6 +139,11 @@ h3 {
 }
 
 .lang-switch {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.lang-switch a {
   padding: 0.25rem 0.9rem;
   border-radius: 999px;
   background: var(--peach-light);
@@ -183,6 +188,10 @@ h3 {
 .header__mobile nav .lang-switch {
   justify-self: start;
   margin-top: 0.75rem;
+}
+
+.header__mobile nav .lang-switch a {
+  padding: 0.25rem 0.9rem;
   border: 0;
 }
 
@@ -508,4 +517,14 @@ h3 {
   display: grid;
   place-items: center;
   box-shadow: 0 4px 14px rgb(0 0 0 / 0.25);
+}
+
+/* Uploaded photos fill their frame. */
+.menu__photo > img:not(.menu__placeholder),
+.team__photo > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

@@ -27,7 +27,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {
               {l.label}
             </Link>
           ))}
-          <LanguageSwitch locale={locale} label={t.switchLang} />
+          <LanguageSwitch locale={locale} />
         </nav>
 
         {/* Mobile menu: plain <details>, no JavaScript needed. */}
@@ -43,7 +43,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {
                 {l.label}
               </Link>
             ))}
-            <LanguageSwitch locale={locale} label={t.switchLang} />
+            <LanguageSwitch locale={locale} />
           </nav>
         </details>
       </div>
