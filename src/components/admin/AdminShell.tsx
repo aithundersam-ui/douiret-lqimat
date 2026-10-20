@@ -31,6 +31,7 @@ export function AdminShell({ locale, children }: { locale: AdminLocale; children
     { href: `${base}/`, label: t.nav.dashboard },
     { href: `${base}/today/`, label: t.nav.today },
     { href: `${base}/orders/`, label: t.nav.orders },
+    { href: `${base}/invoices/`, label: t.nav.invoices },
     { href: `${base}/products/`, label: t.nav.products },
     { href: `${base}/purchases/`, label: t.nav.purchases },
     { href: `${base}/expenses/`, label: t.nav.expenses },
@@ -65,7 +66,7 @@ export function AdminShell({ locale, children }: { locale: AdminLocale; children
 
         <nav className="admin-tabs">
           {tabs.map((tab) => (
-            <Link key={tab.href} href={tab.href} aria-current={current === tab.href ? "page" : undefined}>
+            <Link key={tab.href} href={tab.href} aria-current={(tab.href === `${base}/` ? current === tab.href : current.startsWith(tab.href)) ? "page" : undefined}>
               {tab.label}
             </Link>
           ))}

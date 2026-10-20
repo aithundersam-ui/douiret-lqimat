@@ -88,6 +88,35 @@ export type TeamMemberRow = {
   sort: number;
 };
 
+export const invoiceKinds = ["invoice", "proforma"] as const;
+export type InvoiceKind = (typeof invoiceKinds)[number];
+
+export const paymentMethods = ["cash", "transfer", "ccp", "cheque"] as const;
+export type PaymentMethod = (typeof paymentMethods)[number];
+
+export type InvoiceLine = { description: string; unit: string; qty: number; unit_price: number };
+
+export type Invoice = {
+  id: string;
+  kind: InvoiceKind;
+  number: string;
+  issue_date: string;
+  /** Payment due date for an invoice, "valid until" for a proforma. */
+  due_date: string;
+  customer_name: string;
+  customer_address: string;
+  customer_phone: string;
+  customer_tax_id: string;
+  payment_method: PaymentMethod;
+  lines: InvoiceLine[];
+  discount: number;
+  /** Percent, e.g. 19. */
+  vat_rate: number;
+  stamp_duty: number;
+  notes: string;
+  order_id: string | null;
+};
+
 export type Tables = {
   products: Product;
   daily_counts: DailyCount;
@@ -95,6 +124,7 @@ export type Tables = {
   purchases: Purchase;
   expenses: Expense;
   team_members: TeamMemberRow;
+  invoices: Invoice;
 };
 
 export type TableName = keyof Tables;
@@ -109,6 +139,7 @@ export const dateColumn: Record<TableName, string | null> = {
   purchases: "day",
   expenses: "day",
   team_members: null,
+  invoices: "issue_date",
 };
 
 /** A row's name (or other text) in the staff area's language, falling back to whatever is filled in. */

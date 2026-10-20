@@ -1,10 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import type { HomeContent } from "@/lib/site/content";
+import type { BusinessDetails } from "./invoices";
 import type { NewRow, Store } from "./store";
 import { dateColumn, type Range, type TableName, type Tables } from "./types";
 
 // Postgres numeric columns come back as strings; turn them into numbers.
-const numericColumns = new Set(["price", "unit_cost", "produced", "sold", "wasted", "unit_price", "total", "deposit", "paid", "amount"]);
+const numericColumns = new Set(["price", "unit_cost", "produced", "sold", "wasted", "unit_price", "total", "deposit", "paid", "amount", "discount", "vat_rate", "stamp_duty"]);
 
 function toNumbers<T>(row: Record<string, unknown>): T {
   const out: Record<string, unknown> = { ...row };
@@ -72,6 +73,19 @@ export function createSupabaseStore(url: string, key: string): Store {
         await db
           .from("site_content")
           .upsert({ key: "home", value: content, updated_at: new Date().toISOString() } as never, { onConflict: "key" }),
+      );
+    },
+
+    async getBusiness() {
+      const rows = check(await db.from("settings").select("value").eq("key", "business").limit(1));
+      return (rows?.[0] as { value: Partial<BusinessDetails> } | undefined)?.value ?? null;
+    },
+
+    async saveBusiness(details) {
+      check(
+        await db
+          .from("settings")
+          .upsert({ key: "business", value: details, updated_at: new Date().toISOString() } as never, { onConflict: "key" }),
       );
     },
 

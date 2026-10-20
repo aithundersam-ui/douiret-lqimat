@@ -100,6 +100,35 @@ alter table public.products alter column name_ar set default '';
 alter table public.team_members add column if not exists name_en text not null default '';
 alter table public.team_members add column if not exists role_en text not null default '';
 
+-- Invoices and proforma invoices made from the staff area (Invoices screen).
+create table if not exists public.invoices (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null default 'invoice' check (kind in ('invoice', 'proforma')),
+  number text not null unique,
+  issue_date date not null default current_date,
+  due_date date not null default current_date,
+  customer_name text not null default '',
+  customer_address text not null default '',
+  customer_phone text not null default '',
+  customer_tax_id text not null default '',
+  payment_method text not null default 'cash',
+  lines jsonb not null default '[]'::jsonb,
+  discount numeric(12, 2) not null default 0 check (discount >= 0),
+  vat_rate numeric(5, 2) not null default 0 check (vat_rate >= 0),
+  stamp_duty numeric(12, 2) not null default 0 check (stamp_duty >= 0),
+  notes text not null default '',
+  order_id uuid references public.orders (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+-- Staff-only settings, such as the business details printed on invoices.
+create table if not exists public.settings (
+  key text primary key,
+  value jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists invoices_issue_date_idx on public.invoices (issue_date);
 create index if not exists daily_counts_day_idx on public.daily_counts (day);
 create index if not exists orders_due_date_idx on public.orders (due_date);
 create index if not exists purchases_day_idx on public.purchases (day);
@@ -111,13 +140,23 @@ create index if not exists expenses_day_idx on public.expenses (day);
 do $$
 declare t text;
 begin
-  foreach t in array array['products', 'daily_counts', 'orders', 'purchases', 'expenses', 'site_content', 'team_members'] loop
+  foreach t in array array['products', 'daily_counts', 'orders', 'purchases', 'expenses', 'site_content', 'team_members', 'settings'] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists "staff full access" on public.%I', t);
     execute format(
       'create policy "staff full access" on public.%I for all to authenticated using (true) with check (true)', t);
   end loop;
 end $$;
+
+-- Invoices are kept for good: staff can create, read and correct them, but not delete them.
+alter table public.invoices enable row level security;
+drop policy if exists "staff full access" on public.invoices;
+drop policy if exists "staff read invoices" on public.invoices;
+create policy "staff read invoices" on public.invoices for select to authenticated using (true);
+drop policy if exists "staff create invoices" on public.invoices;
+create policy "staff create invoices" on public.invoices for insert to authenticated with check (true);
+drop policy if exists "staff correct invoices" on public.invoices;
+create policy "staff correct invoices" on public.invoices for update to authenticated using (true) with check (true);
 
 drop policy if exists "public can read active products" on public.products;
 create policy "public can read active products" on public.products

@@ -1,4 +1,5 @@
 import type { HomeContent } from "@/lib/site/content";
+import type { BusinessDetails } from "./invoices";
 import type { Range, TableName, Tables } from "./types";
 
 export type NewRow<T extends TableName> = Omit<Tables[T], "id">;
@@ -22,6 +23,9 @@ export interface Store {
   /** The home page texts and contact details saved from the Website screen (null if never saved). */
   getContent(): Promise<Partial<HomeContent> | null>;
   saveContent(content: HomeContent): Promise<void>;
+  /** The shop's details printed on invoices (null if never saved). */
+  getBusiness(): Promise<Partial<BusinessDetails> | null>;
+  saveBusiness(details: BusinessDetails): Promise<void>;
   /** Store a photo for the website and return its public address. */
   uploadImage(image: Blob): Promise<string>;
 }

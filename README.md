@@ -12,6 +12,7 @@ The website is in English (`/en/`, the main language), Arabic (`/ar/`) and Frenc
   - **Dashboard**: revenue, cost of goods, waste, expenses, net profit, waste %, made-here vs resale, daily revenue chart, best sellers, most waste, upcoming pre-orders, money owed to suppliers
   - **Today**: per product, what was made (or bought), sold and wasted, with what should be left
   - **Orders**, **Products**, **Purchases**, **Expenses**: add, edit and delete records
+  - **Invoices**: invoices and proforma invoices with automatic numbers (FAC-2026-0001, PRO-2026-0001), filled from products or from an order, printed or saved as PDF in the shop's French/Arabic template. A proforma can be turned into an invoice. Every invoice is saved and can be corrected but never deleted (enforced in the database too). The shop's RC, NIF, NIS, AI, RIB, VAT rate and payment terms are filled in once under "Business details on invoices".
   - **Website**: edit everything on the home page (texts in English, Arabic and French, contact details, WhatsApp number, opening hours, social links, team members with photos). Product photos, descriptions and "show on home page" are set in **Products**.
 
 The public pages are built with the latest saved content, and also refresh it in the browser, so changes from the Website screen show up straight away without a rebuild. While nothing is saved yet (no products, no team members), the site shows the sample content from `src/data/`.

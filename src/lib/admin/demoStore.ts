@@ -2,6 +2,7 @@ import { products as menu } from "@/data/menu";
 import { team as defaultTeam } from "@/data/team";
 import type { HomeContent, ProductRow, TeamRow } from "@/lib/site/content";
 import { addDays, isoDay } from "./dates";
+import type { BusinessDetails } from "./invoices";
 import type { NewRow, Store } from "./store";
 import { dateColumn, type DailyCount, type Range, type TableName, type Tables } from "./types";
 
@@ -9,7 +10,7 @@ import { dateColumn, type DailyCount, type Range, type TableName, type Tables } 
 // every screen has something to show. Used until Supabase is configured.
 
 const KEY = "douiret-demo-v3";
-type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent };
+type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent; business?: BusinessDetails };
 
 function id() {
   return Math.random().toString(36).slice(2, 10);
@@ -70,6 +71,26 @@ function seed(): Data {
       { id: id(), day: addDays(today, -4), supplier: "Amandes El Harrach", item: "Amandes 5 kg", total: 11000, paid: 6000 },
       { id: id(), day: addDays(today, -2), supplier: "Grossiste Belcourt", item: "Miel 3 kg, beurre 4 kg", total: 9400, paid: 5000 },
     ],
+    invoices: [
+      {
+        id: id(), kind: "invoice", number: `FAC-${today.slice(0, 4)}-0001`, issue_date: addDays(today, -3), due_date: addDays(today, -3),
+        customer_name: "Nadia M.", customer_address: "Kouba, Alger", customer_phone: "0770 11 22 33", customer_tax_id: "",
+        payment_method: "cash", discount: 0, vat_rate: 0, stamp_duty: 0, notes: "", order_id: null,
+        lines: [
+          { description: "Makrout", unit: "pièce", qty: 24, unit_price: 80 },
+          { description: "Lqimat (boîte)", unit: "boîte", qty: 2, unit_price: 600 },
+        ],
+      },
+      {
+        id: id(), kind: "proforma", number: `PRO-${today.slice(0, 4)}-0001`, issue_date: today, due_date: addDays(today, 15),
+        customer_name: "Samira B.", customer_address: "", customer_phone: "0555 12 34 56", customer_tax_id: "",
+        payment_method: "transfer", discount: 1000, vat_rate: 0, stamp_duty: 0, notes: "Acompte de 10 000 DA à la commande.", order_id: null,
+        lines: [
+          { description: "Makrout", unit: "pièce", qty: 200, unit_price: 80 },
+          { description: "Baklawa", unit: "pièce", qty: 100, unit_price: 150 },
+        ],
+      },
+    ],
     team_members: defaultTeam.map((m, i) => ({
       id: id(),
       name_en: m.name.en,
@@ -92,7 +113,11 @@ function seed(): Data {
 function load(): Data {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const data = JSON.parse(raw) as Data;
+      data.invoices ??= []; // demo data saved before invoices existed
+      return data;
+    }
   } catch {}
   return seed();
 }
@@ -161,6 +186,7 @@ export function createDemoStore(): Store {
       save();
     },
     async remove(table, rowId) {
+      if (table === "invoices") throw new Error("Invoices are kept and can't be deleted.");
       data = { ...data, [table]: (data[table] as { id: string }[]).filter((r) => r.id !== rowId) };
       if (table === "products") data.daily_counts = data.daily_counts.filter((c) => c.product_id !== rowId);
       save();
@@ -170,6 +196,13 @@ export function createDemoStore(): Store {
     },
     async saveContent(content) {
       data.site_content = content;
+      save();
+    },
+    async getBusiness() {
+      return data.business ?? null;
+    },
+    async saveBusiness(details) {
+      data.business = details;
       save();
     },
     async uploadImage(image) {
