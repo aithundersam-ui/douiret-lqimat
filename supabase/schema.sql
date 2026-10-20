@@ -93,6 +93,13 @@ create table if not exists public.team_members (
   created_at timestamptz not null default now()
 );
 
+-- English (the website's main language) next to Arabic and French.
+alter table public.products add column if not exists name_en text not null default '';
+alter table public.products add column if not exists description_en text not null default '';
+alter table public.products alter column name_ar set default '';
+alter table public.team_members add column if not exists name_en text not null default '';
+alter table public.team_members add column if not exists role_en text not null default '';
+
 create index if not exists daily_counts_day_idx on public.daily_counts (day);
 create index if not exists orders_due_date_idx on public.orders (due_date);
 create index if not exists purchases_day_idx on public.purchases (day);

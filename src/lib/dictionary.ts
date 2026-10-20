@@ -4,7 +4,6 @@ const ar = {
   shopName: "دويرة اللقيمات",
   tagline: "مملحات وحلويات تقليدية جزائرية وعصرية",
   nav: { home: "الرئيسية", about: "من نحن", menu: "القائمة", team: "فريقنا", contact: "اتصل بنا" },
-  switchLang: "Français",
   hero: {
     title: "طعم دار جدّتي، كل يوم طازج",
     text: "حلويات تقليدية، حلويات عصرية ومملحات صغيرة، نحضّرها كل صباح في الجزائر العاصمة.",
@@ -45,7 +44,6 @@ const fr: typeof ar = {
   shopName: "Douiret Lqimat",
   tagline: "Salés et sucrés traditionnels algériens et modernes",
   nav: { home: "Accueil", about: "Nous", menu: "Menu", team: "L'équipe", contact: "Contact" },
-  switchLang: "العربية",
   hero: {
     title: "Le goût de chez grand-mère, frais chaque jour",
     text: "Gâteaux traditionnels, douceurs modernes et mini salés, préparés chaque matin à Alger.",
@@ -82,7 +80,47 @@ const fr: typeof ar = {
   staffArea: "Espace équipe",
 };
 
-const dictionaries = { ar, fr };
+const en: typeof ar = {
+  shopName: "Douiret Lqimat",
+  tagline: "Traditional and modern Algerian savouries and sweets",
+  nav: { home: "Home", about: "About", menu: "Menu", team: "Our team", contact: "Contact" },
+  hero: {
+    title: "Grandma's taste, fresh every day",
+    text: "Traditional sweets, modern pastries and mini savouries, made every morning in Algiers.",
+    seeMenu: "See the menu",
+    order: "Order on WhatsApp",
+  },
+  about: {
+    title: "What we make",
+    items: [
+      { title: "Traditional sweets", text: "Makrout, baklawa, griwech, mchewek, dziriettes and the lqimat our shop is named after." },
+      { title: "Modern pastries", text: "A modern selection for coffee time and celebrations, made with the same care." },
+      { title: "Mini savouries", text: "Bourek, mhadjeb, mini pizzas, coca and msemen, warm from the oven." },
+      { title: "Event orders", text: "Weddings, Eid, Ramadan and family celebrations: order ahead and we prepare your tray your way." },
+    ],
+  },
+  menu: {
+    title: "Menu",
+    subtitle: "Prices in Algerian dinars. What's available changes from day to day.",
+    all: "All",
+    seeAll: "Full menu",
+    perUnit: { piece: "each", kg: "per kg", box: "per box", tray: "per tray" },
+    empty: "Nothing in this category right now.",
+  },
+  team: { title: "Our team", subtitle: "The hands at work every morning." },
+  contact: {
+    title: "Visit us or order",
+    address: "Address",
+    hours: "Opening hours",
+    phone: "Phone",
+    follow: "Follow us",
+    preorder: "For pre-orders (weddings, Eid, celebrations), message us on WhatsApp at least two days ahead.",
+  },
+  footer: "All rights reserved",
+  staffArea: "Staff area",
+};
+
+const dictionaries = { en, ar, fr };
 
 export type Dictionary = typeof ar;
 

@@ -2,16 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { Locale } from "@/lib/i18n";
+import { languageNames, locales, type Locale } from "@/lib/i18n";
 
-export function LanguageSwitch({ locale, label }: { locale: Locale; label: string }) {
+/** Links to the same page in the other two languages. */
+export function LanguageSwitch({ locale }: { locale: Locale }) {
   const pathname = usePathname() ?? `/${locale}/`;
-  const other: Locale = locale === "ar" ? "fr" : "ar";
-  const href = pathname.replace(new RegExp(`^/${locale}(?=/|$)`), `/${other}`);
 
   return (
-    <Link href={href} hrefLang={other} lang={other} className="lang-switch">
-      {label}
-    </Link>
+    <span className="lang-switch">
+      {locales
+        .filter((l) => l !== locale)
+        .map((l) => (
+          <Link key={l} href={pathname.replace(new RegExp(`^/${locale}(?=/|$)`), `/${l}`)} hrefLang={l} lang={l}>
+            {languageNames[l]}
+          </Link>
+        ))}
+    </span>
   );
 }

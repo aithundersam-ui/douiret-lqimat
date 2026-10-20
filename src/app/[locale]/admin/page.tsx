@@ -5,7 +5,7 @@ import { useAdmin } from "@/components/admin/AdminContext";
 import { RevenueChart } from "@/components/admin/RevenueChart";
 import { useRows } from "@/components/admin/useRows";
 import { addDays, daysBetween, isoDay, startOfMonth } from "@/lib/admin/dates";
-import type { Product } from "@/lib/admin/types";
+import { inLanguage, type Product } from "@/lib/admin/types";
 import { formatPrice } from "@/lib/i18n";
 
 type RangeKey = "today" | "week" | "month";
@@ -59,7 +59,7 @@ export default function DashboardPage() {
     const expenseTotal = expenses.reduce((s, e) => s + e.amount, 0);
     const name = (id: string) => {
       const p = byId.get(id);
-      return p ? (locale === "ar" ? p.name_ar : p.name_fr || p.name_ar) : "?";
+      return p ? inLanguage(locale, p.name_en, p.name_ar, p.name_fr) : "?";
     };
     const ranked = [...perProduct.entries()].map(([id, v]) => ({ name: name(id), ...v }));
 

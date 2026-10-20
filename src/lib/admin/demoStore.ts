@@ -8,7 +8,7 @@ import { dateColumn, type DailyCount, type Range, type TableName, type Tables } 
 // Demo mode: data lives only in this browser, seeded with sample numbers so
 // every screen has something to show. Used until Supabase is configured.
 
-const KEY = "douiret-demo-v2";
+const KEY = "douiret-demo-v3";
 type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent };
 
 function id() {
@@ -28,6 +28,7 @@ function seed(): Data {
   const rand = rng(42);
   const products = menu.map((p) => ({
     id: p.id,
+    name_en: p.name.en,
     name_ar: p.name.ar,
     name_fr: p.name.fr,
     category: p.category,
@@ -36,6 +37,7 @@ function seed(): Data {
     price: p.price,
     unit_cost: Math.round(p.price * (p.category === "drinks" ? 0.7 : 0.4)),
     active: true,
+    description_en: p.description?.en ?? "",
     description_ar: p.description?.ar ?? "",
     description_fr: p.description?.fr ?? "",
     featured: Boolean(p.featured),
@@ -70,8 +72,10 @@ function seed(): Data {
     ],
     team_members: defaultTeam.map((m, i) => ({
       id: id(),
+      name_en: m.name.en,
       name_ar: m.name.ar,
       name_fr: m.name.fr,
+      role_en: m.role.en,
       role_ar: m.role.ar,
       role_fr: m.role.fr,
       photo_url: m.photo ?? "",

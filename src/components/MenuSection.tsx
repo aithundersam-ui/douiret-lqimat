@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { categories } from "@/data/menu";
 import type { Dictionary } from "@/lib/dictionary";
-import type { Locale } from "@/lib/i18n";
+import { pick, type Locale } from "@/lib/i18n";
 import { MenuGrid } from "./MenuGrid";
 import { useSiteData } from "./SiteData";
 
@@ -29,7 +29,7 @@ export function MenuSection({
     <section id="menu" className="section section--tinted">
       <div className="container">
         <Heading className="section__title">{t.menu.title}</Heading>
-        <p className="section__subtitle">{content.menuSubtitle[locale]}</p>
+        <p className="section__subtitle">{pick(content.menuSubtitle, locale)}</p>
         <MenuGrid locale={locale} t={t} items={items} categories={usedCategories} showFilters={!featuredOnly} />
         {featuredOnly && (
           <p className="center">

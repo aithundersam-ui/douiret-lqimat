@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary } from "@/lib/dictionary";
-import type { Locale } from "@/lib/i18n";
+import { pick, type Locale } from "@/lib/i18n";
 import { useSiteData } from "./SiteData";
 
 export function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
@@ -12,9 +12,9 @@ export function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
     <section className="hero">
       <div className="container hero__inner">
         <div className="hero__text">
-          <p className="eyebrow">{content.tagline[locale]}</p>
-          <h1>{content.heroTitle[locale]}</h1>
-          <p>{content.heroText[locale]}</p>
+          <p className="eyebrow">{pick(content.tagline, locale)}</p>
+          <h1>{pick(content.heroTitle, locale)}</h1>
+          <p>{pick(content.heroText, locale)}</p>
           <div className="hero__actions">
             <Link href={`/${locale}/menu/`} className="btn btn--primary">
               {t.hero.seeMenu}

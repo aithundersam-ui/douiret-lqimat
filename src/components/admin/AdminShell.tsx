@@ -6,11 +6,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAdminDictionary } from "@/lib/admin/dictionary";
 import { getStore, type Store } from "@/lib/admin/store";
-import type { Locale } from "@/lib/i18n";
+import { languageNames, type AdminLocale } from "@/lib/i18n";
 import { AdminContext } from "./AdminContext";
 import { Login } from "./Login";
 
-export function AdminShell({ locale, children }: { locale: Locale; children: React.ReactNode }) {
+export function AdminShell({ locale, children }: { locale: AdminLocale; children: React.ReactNode }) {
   const t = getAdminDictionary(locale);
   const pathname = usePathname() ?? "";
   const [store, setStore] = useState<Store | null>(null);
@@ -36,7 +36,7 @@ export function AdminShell({ locale, children }: { locale: Locale; children: Rea
     { href: `${base}/expenses/`, label: t.nav.expenses },
     { href: `${base}/website/`, label: t.nav.website },
   ];
-  const other: Locale = locale === "ar" ? "fr" : "ar";
+  const other: AdminLocale = locale === "ar" ? "en" : "ar";
   const current = pathname.endsWith("/") ? pathname : `${pathname}/`;
 
   return (
@@ -49,7 +49,7 @@ export function AdminShell({ locale, children }: { locale: Locale; children: Rea
           </Link>
           <div className="admin-top__actions">
             <Link href={current.replace(`/${locale}/`, `/${other}/`)} lang={other}>
-              {other === "ar" ? "العربية" : "Français"}
+              {languageNames[other]}
             </Link>
             <button
               type="button"

@@ -2,7 +2,7 @@ import { products as defaultProducts, type Product as MenuProduct } from "@/data
 import { shop } from "@/data/shop";
 import { team as defaultTeam, type TeamMember } from "@/data/team";
 import { getDictionary } from "@/lib/dictionary";
-import type { Localized } from "@/lib/i18n";
+import { locales, type Localized } from "@/lib/i18n";
 
 /** Everything on the home page that the owner can edit from the staff area. */
 export type HomeContent = {
@@ -25,24 +25,25 @@ export type HomeContent = {
 
 export type SiteData = { content: HomeContent; products: MenuProduct[]; team: TeamMember[] };
 
+const en = getDictionary("en");
 const ar = getDictionary("ar");
 const fr = getDictionary("fr");
-const both = (pick: (t: typeof ar) => string): Localized => ({ ar: pick(ar), fr: pick(fr) });
+const all = (pick: (t: typeof ar) => string): Localized => ({ en: pick(en), ar: pick(ar), fr: pick(fr) });
 const icons = ["🍯", "🧁", "🥟", "🎉"];
 
 export const defaultContent: HomeContent = {
-  tagline: both((t) => t.tagline),
-  heroTitle: both((t) => t.hero.title),
-  heroText: both((t) => t.hero.text),
-  aboutTitle: both((t) => t.about.title),
-  about: ar.about.items.map((item, i) => ({
+  tagline: all((t) => t.tagline),
+  heroTitle: all((t) => t.hero.title),
+  heroText: all((t) => t.hero.text),
+  aboutTitle: all((t) => t.about.title),
+  about: en.about.items.map((item, i) => ({
     icon: icons[i] ?? "⭐",
-    title: { ar: item.title, fr: fr.about.items[i].title },
-    text: { ar: item.text, fr: fr.about.items[i].text },
+    title: { en: item.title, ar: ar.about.items[i].title, fr: fr.about.items[i].title },
+    text: { en: item.text, ar: ar.about.items[i].text, fr: fr.about.items[i].text },
   })),
-  menuSubtitle: both((t) => t.menu.subtitle),
-  teamSubtitle: both((t) => t.team.subtitle),
-  preorderNote: both((t) => t.contact.preorder),
+  menuSubtitle: all((t) => t.menu.subtitle),
+  teamSubtitle: all((t) => t.team.subtitle),
+  preorderNote: all((t) => t.contact.preorder),
   phone: shop.phone,
   whatsapp: shop.whatsapp,
   address: shop.address,
@@ -54,19 +55,33 @@ export const defaultContent: HomeContent = {
 
 export const defaultSiteData: SiteData = { content: defaultContent, products: defaultProducts, team: defaultTeam };
 
+/** Text saved before English was added has only ar and fr: make sure every language key exists. */
+function fillLanguages(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(fillLanguages);
+  if (!value || typeof value !== "object") return value;
+  const obj = value as Record<string, unknown>;
+  if ("ar" in obj && "fr" in obj && typeof obj.ar === "string") {
+    const text = Object.fromEntries(locales.map((l) => [l, typeof obj[l] === "string" ? obj[l] : ""]));
+    return text;
+  }
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, fillLanguages(v)]));
+}
+
 /** Saved content may be partial or from an older version: fill the gaps from the defaults. */
 export function withDefaults(saved: Partial<HomeContent> | null | undefined): HomeContent {
   if (!saved || typeof saved !== "object") return defaultContent;
   const out = { ...defaultContent } as Record<string, unknown>;
-  for (const [k, v] of Object.entries(saved)) if (k in defaultContent && v != null) out[k] = v;
+  for (const [k, v] of Object.entries(saved)) if (k in defaultContent && v != null) out[k] = fillLanguages(v);
   return out as HomeContent;
 }
 
 /** Rows as stored in the database, turned into what the public pages show. */
 export type ProductRow = {
   id: string;
+  name_en?: string;
   name_ar: string;
   name_fr: string;
+  description_en?: string;
   description_ar?: string;
   description_fr?: string;
   category: MenuProduct["category"];
@@ -79,8 +94,10 @@ export type ProductRow = {
 
 export type TeamRow = {
   id: string;
+  name_en?: string;
   name_ar: string;
   name_fr: string;
+  role_en?: string;
   role_ar: string;
   role_fr: string;
   photo_url: string;
@@ -88,10 +105,13 @@ export type TeamRow = {
 };
 
 export function toMenuProduct(p: ProductRow): MenuProduct {
-  const description = p.description_ar || p.description_fr ? { ar: p.description_ar ?? "", fr: p.description_fr || p.description_ar || "" } : undefined;
+  const description =
+    p.description_en || p.description_ar || p.description_fr
+      ? { en: p.description_en ?? "", ar: p.description_ar ?? "", fr: p.description_fr ?? "" }
+      : undefined;
   return {
     id: p.id,
-    name: { ar: p.name_ar, fr: p.name_fr || p.name_ar },
+    name: { en: p.name_en ?? "", ar: p.name_ar, fr: p.name_fr },
     description,
     category: p.category,
     price: Number(p.price),
@@ -103,8 +123,8 @@ export function toMenuProduct(p: ProductRow): MenuProduct {
 
 export function toTeamMember(m: TeamRow): TeamMember {
   return {
-    name: { ar: m.name_ar, fr: m.name_fr || m.name_ar },
-    role: { ar: m.role_ar, fr: m.role_fr || m.role_ar },
+    name: { en: m.name_en ?? "", ar: m.name_ar, fr: m.name_fr },
+    role: { en: m.role_en ?? "", ar: m.role_ar, fr: m.role_fr },
     photo: m.photo_url || undefined,
   };
 }

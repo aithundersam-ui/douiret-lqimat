@@ -1,7 +1,7 @@
 "use client";
 
 import type { Dictionary } from "@/lib/dictionary";
-import type { Locale } from "@/lib/i18n";
+import { pick, type Locale } from "@/lib/i18n";
 import { useSiteData } from "./SiteData";
 
 export function Contact({ locale, t }: { locale: Locale; t: Dictionary }) {
@@ -15,7 +15,7 @@ export function Contact({ locale, t }: { locale: Locale; t: Dictionary }) {
             <h3>{t.contact.address}</h3>
             <p>
               <a href={c.mapUrl} target="_blank" rel="noopener">
-                {c.address[locale]}
+                {pick(c.address, locale)}
               </a>
             </p>
           </div>
@@ -23,7 +23,7 @@ export function Contact({ locale, t }: { locale: Locale; t: Dictionary }) {
             <h3>{t.contact.hours}</h3>
             {c.hours.map((h, i) => (
               <p key={i}>
-                {h.days[locale]} <bdi dir="ltr">{h.time}</bdi>
+                {pick(h.days, locale)} <bdi dir="ltr">{h.time}</bdi>
               </p>
             ))}
           </div>
@@ -53,7 +53,7 @@ export function Contact({ locale, t }: { locale: Locale; t: Dictionary }) {
             )}
           </div>
         </div>
-        <p className="contact__note">{c.preorderNote[locale]}</p>
+        <p className="contact__note">{pick(c.preorderNote, locale)}</p>
       </div>
     </section>
   );

@@ -4,6 +4,7 @@ export type ProductSource = "made" | "resale";
 
 export type Product = {
   id: string;
+  name_en: string;
   name_ar: string;
   name_fr: string;
   category: CategoryId;
@@ -13,6 +14,7 @@ export type Product = {
   unit_cost: number;
   active: boolean;
   // Shown on the public website.
+  description_en: string;
   description_ar: string;
   description_fr: string;
   featured: boolean;
@@ -76,8 +78,10 @@ export type Expense = {
 
 export type TeamMemberRow = {
   id: string;
+  name_en: string;
   name_ar: string;
   name_fr: string;
+  role_en: string;
   role_ar: string;
   role_fr: string;
   photo_url: string;
@@ -106,3 +110,8 @@ export const dateColumn: Record<TableName, string | null> = {
   expenses: "day",
   team_members: null,
 };
+
+/** A row's name (or other text) in the staff area's language, falling back to whatever is filled in. */
+export function inLanguage(locale: "en" | "ar", en: string | undefined, ar: string | undefined, fr?: string): string {
+  return (locale === "ar" ? ar || en || fr : en || fr || ar) || "";
+}

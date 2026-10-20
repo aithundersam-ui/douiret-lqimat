@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAdmin } from "@/components/admin/AdminContext";
 import { CrudPage, ImageInput } from "@/components/admin/CrudPage";
+import { inLanguage } from "@/lib/admin/types";
 import type { Localized } from "@/lib/i18n";
 import { withDefaults, type HomeContent } from "@/lib/site/content";
 
@@ -49,7 +50,7 @@ export default function WebsitePage() {
   }
 
   const pair = (label: string, value: Localized, onChange: (v: Localized) => void, multiline = false) => (
-    <Pair label={label} value={value} onChange={onChange} multiline={multiline} ar={w.arabic} fr={w.french} />
+    <Pair label={label} value={value} onChange={onChange} multiline={multiline} en={w.english} ar={w.arabic} fr={w.french} />
   );
 
   return (
@@ -97,7 +98,7 @@ export default function WebsitePage() {
           <button
             type="button"
             className="btn btn--ghost"
-            onClick={() => set("about", [...content.about, { icon: "⭐", title: { ar: "", fr: "" }, text: { ar: "", fr: "" } }])}
+            onClick={() => set("about", [...content.about, { icon: "⭐", title: { en: "", ar: "", fr: "" }, text: { en: "", ar: "", fr: "" } }])}
           >
             + {t.common.add}
           </button>
@@ -144,6 +145,10 @@ export default function WebsitePage() {
           return (
             <div key={i} className="admin-row-inputs">
               <label>
+                {w.days} ({w.english})
+                <input dir="ltr" value={h.days.en} onChange={(e) => update({ days: { ...h.days, en: e.target.value } })} />
+              </label>
+              <label>
                 {w.days} ({w.arabic})
                 <input value={h.days.ar} onChange={(e) => update({ days: { ...h.days, ar: e.target.value } })} />
               </label>
@@ -164,7 +169,7 @@ export default function WebsitePage() {
         <button
           type="button"
           className="btn btn--ghost"
-          onClick={() => set("hours", [...content.hours, { days: { ar: "", fr: "" }, time: "" }])}
+          onClick={() => set("hours", [...content.hours, { days: { en: "", ar: "", fr: "" }, time: "" }])}
         >
           {w.addHours}
         </button>
@@ -190,24 +195,26 @@ export default function WebsitePage() {
           title={w.team}
           headingLevel={2}
           fields={[
-            { key: "name_ar", label: `${w.memberName} (${w.arabic})`, type: "text", required: true },
+            { key: "name_en", label: `${w.memberName} (${w.english})`, type: "text", required: true },
+            { key: "name_ar", label: `${w.memberName} (${w.arabic})`, type: "text" },
             { key: "name_fr", label: `${w.memberName} (${w.french})`, type: "text" },
+            { key: "role_en", label: `${w.memberRole} (${w.english})`, type: "text" },
             { key: "role_ar", label: `${w.memberRole} (${w.arabic})`, type: "text" },
             { key: "role_fr", label: `${w.memberRole} (${w.french})`, type: "text" },
             { key: "photo_url", label: t.website.addPhoto, type: "image" },
             { key: "sort", label: w.order, type: "number" },
           ]}
-          emptyRow={() => ({ name_ar: "", name_fr: "", role_ar: "", role_fr: "", photo_url: "", sort: 0 })}
+          emptyRow={() => ({ name_en: "", name_ar: "", name_fr: "", role_en: "", role_ar: "", role_fr: "", photo_url: "", sort: 0 })}
           sort={(a, b) => a.sort - b.sort}
           card={(m) => ({
             title: (
               <span className="admin-member">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {m.photo_url ? <img src={m.photo_url} alt="" /> : <span aria-hidden>{m.name_ar.charAt(0)}</span>}
-                {locale === "ar" ? m.name_ar : m.name_fr || m.name_ar}
+                {m.photo_url ? <img src={m.photo_url} alt="" /> : <span aria-hidden>{inLanguage(locale, m.name_en, m.name_ar, m.name_fr).charAt(0)}</span>}
+                {inLanguage(locale, m.name_en, m.name_ar, m.name_fr)}
               </span>
             ),
-            subtitle: locale === "ar" ? m.role_ar : m.role_fr || m.role_ar,
+            subtitle: inLanguage(locale, m.role_en, m.role_ar, m.role_fr),
             aside: `#${m.sort}`,
           })}
         />
@@ -233,6 +240,7 @@ function Pair({
   value,
   onChange,
   multiline,
+  en,
   ar,
   fr,
 }: {
@@ -240,6 +248,7 @@ function Pair({
   value: Localized;
   onChange: (v: Localized) => void;
   multiline: boolean;
+  en: string;
   ar: string;
   fr: string;
 }) {
@@ -247,6 +256,10 @@ function Pair({
   return (
     <div className="admin-pair">
       <span className="admin-pair__label">{label}</span>
+      <label>
+        {en}
+        <Input dir="ltr" lang="en" rows={multiline ? 3 : undefined} value={value.en} onChange={(e) => onChange({ ...value, en: e.target.value })} />
+      </label>
       <label>
         {ar}
         <Input dir="rtl" lang="ar" rows={multiline ? 3 : undefined} value={value.ar} onChange={(e) => onChange({ ...value, ar: e.target.value })} />

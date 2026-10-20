@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: { default: `${t.shopName} · ${t.tagline}`, template: `%s · ${t.shopName}` },
     description: t.hero.text,
     openGraph: { title: t.shopName, description: t.tagline, images: ["/brand/og.jpg"], locale },
-    alternates: { languages: { ar: "/ar/", fr: "/fr/" } },
+    alternates: { languages: { en: "/en/", ar: "/ar/", fr: "/fr/", "x-default": "/en/" } },
   };
 }
 

@@ -5,7 +5,7 @@ import { useAdmin } from "@/components/admin/AdminContext";
 import { useRows } from "@/components/admin/useRows";
 import { categories } from "@/data/menu";
 import { isoDay } from "@/lib/admin/dates";
-import type { DailyCount } from "@/lib/admin/types";
+import { inLanguage, type DailyCount } from "@/lib/admin/types";
 import { formatPrice } from "@/lib/i18n";
 
 type Counts = Record<string, { produced: number; sold: number; wasted: number }>;
@@ -67,7 +67,7 @@ export default function TodayPage() {
   }
 
   const revenue = active.reduce((sum, p) => sum + (counts[p.id]?.sold ?? 0) * (savedByProduct.get(p.id)?.unit_price ?? p.price), 0);
-  const name = (p: (typeof active)[number]) => (locale === "ar" ? p.name_ar : p.name_fr || p.name_ar);
+  const name = (p: (typeof active)[number]) => inLanguage(locale, p.name_en, p.name_ar, p.name_fr);
 
   return (
     <>
