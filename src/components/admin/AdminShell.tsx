@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAdminDictionary } from "@/lib/admin/dictionary";
 import { getStore, type Store } from "@/lib/admin/store";
+import type { StaffRole } from "@/lib/admin/types";
 import { languageNames, type AdminLocale } from "@/lib/i18n";
 import { AdminContext } from "./AdminContext";
 import { Login } from "./Login";
@@ -15,6 +16,7 @@ export function AdminShell({ locale, children }: { locale: AdminLocale; children
   const pathname = usePathname() ?? "";
   const [store, setStore] = useState<Store | null>(null);
   const [user, setUser] = useState<string | null | undefined>(undefined);
+  const [role, setRole] = useState<StaffRole>("staff");
 
   useEffect(() => {
     getStore().then(async (s) => {
@@ -22,6 +24,11 @@ export function AdminShell({ locale, children }: { locale: AdminLocale; children
       setUser(await s.currentUser());
     });
   }, []);
+
+  // Only the master admin sees the Members tab.
+  useEffect(() => {
+    if (store && user) store.currentRole().then(setRole, () => setRole("staff"));
+  }, [store, user]);
 
   if (!store || user === undefined) return <p className="admin-loading">{t.common.loading}</p>;
   if (!user) return <Login store={store} t={t} onSignedIn={setUser} />;
@@ -36,12 +43,13 @@ export function AdminShell({ locale, children }: { locale: AdminLocale; children
     { href: `${base}/purchases/`, label: t.nav.purchases },
     { href: `${base}/expenses/`, label: t.nav.expenses },
     { href: `${base}/website/`, label: t.nav.website },
+    ...(role === "master" ? [{ href: `${base}/members/`, label: t.nav.members }] : []),
   ];
   const other: AdminLocale = locale === "ar" ? "en" : "ar";
   const current = pathname.endsWith("/") ? pathname : `${pathname}/`;
 
   return (
-    <AdminContext.Provider value={{ store, t, locale }}>
+    <AdminContext.Provider value={{ store, t, locale, role }}>
       <div className="admin">
         <header className="admin-top">
           <Link href={`/${locale}/`} className="admin-top__brand">

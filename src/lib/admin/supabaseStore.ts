@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { HomeContent } from "@/lib/site/content";
 import type { BusinessDetails } from "./invoices";
 import type { NewRow, Store } from "./store";
-import { dateColumn, type Range, type TableName, type Tables } from "./types";
+import { dateColumn, type Member, type Range, type StaffRole, type TableName, type Tables } from "./types";
 
 // Postgres numeric columns come back as strings; turn them into numbers.
 const numericColumns = new Set(["price", "unit_cost", "produced", "sold", "wasted", "unit_price", "total", "deposit", "paid", "amount", "discount", "vat_rate", "stamp_duty"]);
@@ -19,6 +19,19 @@ export function createSupabaseStore(url: string, key: string): Store {
   function check<T>(res: { data: T; error: { message: string } | null }) {
     if (res.error) throw new Error(res.error.message);
     return res.data;
+  }
+
+  // Account changes go through a Netlify function that holds the secret key (see netlify/functions/staff.mts).
+  async function staffApi<T>(body: Record<string, unknown>): Promise<T> {
+    const { data } = await db.auth.getSession();
+    const res = await fetch("/.netlify/functions/staff", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${data.session?.access_token ?? ""}` },
+      body: JSON.stringify(body),
+    });
+    const out = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+    if (!res.ok) throw new Error(out.error ?? `HTTP ${res.status}`);
+    return out as T;
   }
 
   return {
@@ -74,6 +87,25 @@ export function createSupabaseStore(url: string, key: string): Store {
           .from("site_content")
           .upsert({ key: "home", value: content, updated_at: new Date().toISOString() } as never, { onConflict: "key" }),
       );
+    },
+
+    async currentRole() {
+      const { data } = await db.auth.getSession();
+      const userId = data.session?.user.id;
+      if (!userId) return "staff";
+      const rows = check(await db.from("staff_profiles").select("role").eq("user_id", userId).limit(1));
+      return ((rows?.[0] as { role: StaffRole } | undefined)?.role ?? "staff") as StaffRole;
+    },
+
+    listMembers: () => staffApi<{ members: Member[]; me: string }>({ action: "list" }),
+    async createMember(member) {
+      await staffApi({ action: "create", ...member });
+    },
+    async updateMember(id, changes) {
+      await staffApi({ action: "update", id, ...changes });
+    },
+    async deleteMember(id) {
+      await staffApi({ action: "delete", id });
     },
 
     async getBusiness() {

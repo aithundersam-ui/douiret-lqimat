@@ -146,3 +146,17 @@ export const dateColumn: Record<TableName, string | null> = {
 export function inLanguage(locale: "en" | "ar", en: string | undefined, ar: string | undefined, fr?: string): string {
   return (locale === "ar" ? ar || en || fr : en || fr || ar) || "";
 }
+
+/** Staff accounts (Members screen). Mirrors netlify/functions/staff.mts. */
+export type StaffRole = "master" | "staff";
+
+export type Member = {
+  id: string;
+  email: string;
+  name: string;
+  role: StaffRole;
+  active: boolean;
+  lastSignIn: string | null;
+};
+
+export type MemberChanges = { name?: string; role?: StaffRole; active?: boolean; password?: string };
