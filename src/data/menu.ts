@@ -13,6 +13,18 @@ export const categories: { id: CategoryId; name: Localized }[] = [
   { id: "drinks", name: { en: "Drinks", ar: "مشروبات", fr: "Boissons" } },
 ];
 
+// The shop's two menus: sweets and salty. Drinks go with the sweets (tea and coffee with cakes).
+export type MenuId = "sweets" | "salty";
+
+export const menus: { id: MenuId; categories: CategoryId[] }[] = [
+  { id: "sweets", categories: ["traditional", "modern", "drinks"] },
+  { id: "salty", categories: ["savory", "bread"] },
+];
+
+export function menuOf(category: CategoryId): MenuId {
+  return menus.find((m) => m.categories.includes(category))?.id ?? "sweets";
+}
+
 export type Unit = "piece" | "kg" | "box" | "tray";
 
 export type Product = {

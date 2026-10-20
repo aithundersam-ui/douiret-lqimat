@@ -313,6 +313,47 @@ h3 {
 }
 
 /* Menu */
+.menu__switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  max-width: 28rem;
+  margin: 0 auto 1.25rem;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+  scroll-margin-top: 6rem;
+}
+
+.menu__switch button {
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 0.6rem 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--burgundy);
+  cursor: pointer;
+}
+
+.menu__switch button[aria-selected="true"] {
+  background: var(--burgundy);
+  color: var(--white);
+}
+
+.menu__group + .menu__group {
+  margin-top: 2.5rem;
+}
+
+.menu__group-title {
+  text-align: center;
+  color: var(--burgundy);
+  font-size: 1.35rem;
+  margin: 0 0 1rem;
+}
+
 .menu__filters {
   display: flex;
   gap: 0.5rem;

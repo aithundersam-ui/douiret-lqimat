@@ -7,7 +7,7 @@ The website is in English (`/en/`, the main language), Arabic (`/ar/`) and Frenc
 ## Pages
 
 - `/en/`, `/ar/`, `/fr/`: home (what we do, featured menu, team, contact)
-- `/en/menu/`, `/ar/menu/`, `/fr/menu/`: full menu with category filters
+- `/en/menu/`, `/ar/menu/`, `/fr/menu/`: the Sweets Menu (traditional, modern, drinks) and the Salty Menu (mini savouries, bread), each with its own category filters; `#sweets` or `#salty` opens one directly. Which categories go in which menu is set in `src/data/menu.ts`
 - `/en/admin/`, `/ar/admin/`: staff area (sign-in required; `/fr/admin/` opens the English one), with:
   - **Dashboard**: revenue, cost of goods, waste, expenses, net profit, waste %, made-here vs resale, daily revenue chart, best sellers, most waste, upcoming pre-orders, money owed to suppliers
   - **Today**: per product, what was made (or bought), sold and wasted, with what should be left
