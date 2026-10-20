@@ -78,6 +78,8 @@ function FullMenu({
 
   const group = groups.find((g) => g.id === active) ?? groups[0];
   if (!group) return <p className="center">{t.menu.empty}</p>;
+  // A menu with a single category (like drinks) needs no filter buttons.
+  const shownCategories = categories.filter((c) => group.categories.includes(c.id) && group.items.some((p) => p.category === c.id));
 
   return (
     <>
@@ -97,14 +99,7 @@ function FullMenu({
           </button>
         ))}
       </div>
-      <MenuGrid
-        key={group.id}
-        locale={locale}
-        t={t}
-        items={group.items}
-        categories={categories.filter((c) => group.categories.includes(c.id) && group.items.some((p) => p.category === c.id))}
-        showFilters
-      />
+      <MenuGrid key={group.id} locale={locale} t={t} items={group.items} categories={shownCategories} showFilters={shownCategories.length > 1} />
     </>
   );
 }

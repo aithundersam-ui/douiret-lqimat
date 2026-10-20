@@ -13,12 +13,13 @@ export const categories: { id: CategoryId; name: Localized }[] = [
   { id: "drinks", name: { en: "Drinks", ar: "مشروبات", fr: "Boissons" } },
 ];
 
-// The shop's two menus: sweets and salty. Drinks go with the sweets (tea and coffee with cakes).
-export type MenuId = "sweets" | "salty";
+// The shop's three menus: sweets, salty and drinks.
+export type MenuId = "sweets" | "salty" | "drinks";
 
 export const menus: { id: MenuId; categories: CategoryId[] }[] = [
-  { id: "sweets", categories: ["traditional", "modern", "drinks"] },
+  { id: "sweets", categories: ["traditional", "modern"] },
   { id: "salty", categories: ["savory", "bread"] },
+  { id: "drinks", categories: ["drinks"] },
 ];
 
 export function menuOf(category: CategoryId): MenuId {
@@ -56,4 +57,9 @@ export const products: Product[] = [
   { id: "PRD-024", name: { en: "Msemen", ar: "مسمن", fr: "Msemen" }, category: "savory", price: 50, unit: "piece" },
   { id: "PRD-030", name: { en: "Khobz eddar (homemade bread)", ar: "خبز الدار", fr: "Khobz eddar" }, category: "bread", price: 100, unit: "piece" },
   { id: "PRD-002", name: { en: "Soft drink 33cl", ar: "مشروب غازي 33cl", fr: "Soda 33cl" }, category: "drinks", price: 100, unit: "piece" },
+  { id: "PRD-030", name: { en: "Mint tea", ar: "أتاي بالنعناع", fr: "Thé à la menthe" }, category: "drinks", price: 80, unit: "piece", featured: true },
+  { id: "PRD-031", name: { en: "Coffee", ar: "قهوة", fr: "Café" }, category: "drinks", price: 70, unit: "piece" },
+  { id: "PRD-032", name: { en: "Fresh orange juice", ar: "عصير برتقال طبيعي", fr: "Jus d'orange pressé" }, category: "drinks", price: 200, unit: "piece" },
+  { id: "PRD-033", name: { en: "Lben (buttermilk)", ar: "لبن", fr: "Lben (lait fermenté)" }, category: "drinks", price: 100, unit: "piece" },
+  { id: "PRD-034", name: { en: "Mineral water 50cl", ar: "ماء معدني 50cl", fr: "Eau minérale 50cl" }, category: "drinks", price: 40, unit: "piece" },
 ];

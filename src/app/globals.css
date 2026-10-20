@@ -315,9 +315,9 @@ h3 {
 /* Menu */
 .menu__switch {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 4px;
-  max-width: 28rem;
+  max-width: 36rem;
   margin: 0 auto 1.25rem;
   padding: 4px;
   border-radius: 999px;
@@ -329,8 +329,9 @@ h3 {
 .menu__switch button {
   font: inherit;
   font-weight: 700;
-  font-size: 1.05rem;
-  padding: 0.6rem 0.5rem;
+  font-size: clamp(0.85rem, 3.4vw, 1.05rem);
+  line-height: 1.2;
+  padding: 0.6rem 0.4rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
