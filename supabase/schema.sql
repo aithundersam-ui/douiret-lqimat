@@ -11,7 +11,7 @@ create table if not exists public.products (
   name_fr text not null default '',
   category text not null default 'traditional',
   source text not null default 'made' check (source in ('made', 'resale')),
-  unit text not null default 'piece' check (unit in ('piece', 'kg', 'box', 'tray')),
+  unit text not null default 'piece' check (unit in ('piece', 'kg', 'box', 'tray', 'cup')),
   price numeric(12, 2) not null default 0 check (price >= 0),
   unit_cost numeric(12, 2) not null default 0 check (unit_cost >= 0),
   active boolean not null default true,
@@ -120,6 +120,10 @@ create table if not exists public.invoices (
   order_id uuid references public.orders (id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+-- Cups (for drinks) were added to the product units after the first version of the table.
+alter table public.products drop constraint if exists products_unit_check;
+alter table public.products add constraint products_unit_check check (unit in ('piece', 'kg', 'box', 'tray', 'cup'));
 
 -- Delivery notes (bons de livraison) were added after the first version of the table.
 alter table public.invoices drop constraint if exists invoices_kind_check;

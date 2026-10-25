@@ -62,7 +62,7 @@ export const paymentText: Record<PaymentMethod, string> = {
   cheque: "Chèque / صك",
 };
 
-export const unitText: Record<Unit, string> = { piece: "pièce", kg: "kg", box: "boîte", tray: "plateau" };
+export const unitText: Record<Unit, string> = { piece: "pièce", kg: "kg", box: "boîte", tray: "plateau", cup: "tasse" };
 
 /** Next free number for the year, like FAC-2026-0007 or BL-2026-0003. */
 export function nextNumber(kind: InvoiceKind, existing: Pick<Invoice, "number">[], business: BusinessDetails, day: string) {
