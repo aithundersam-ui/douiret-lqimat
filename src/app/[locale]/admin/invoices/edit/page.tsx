@@ -7,7 +7,7 @@ import { useAdmin } from "@/components/admin/AdminContext";
 import { addDays, isoDay } from "@/lib/admin/dates";
 import { invoiceTotals, nextNumber, unitText, withBusinessDefaults } from "@/lib/admin/invoices";
 import type { NewRow } from "@/lib/admin/store";
-import { paymentMethods, type Invoice, type InvoiceKind, type Order, type Product } from "@/lib/admin/types";
+import { invoiceKinds, paymentMethods, type Invoice, type InvoiceKind, type Order, type Product } from "@/lib/admin/types";
 import { formatPrice } from "@/lib/i18n";
 
 type Draft = NewRow<"invoices">;
@@ -30,7 +30,7 @@ function EditInvoice() {
   const params = useSearchParams();
   const id = params.get("id");
   const from = params.get("from");
-  const kindParam: InvoiceKind = params.get("kind") === "proforma" ? "proforma" : "invoice";
+  const kindParam: InvoiceKind = invoiceKinds.find((k) => k === params.get("kind")) ?? "invoice";
 
   const [draft, setDraft] = useState<Draft | null>(null);
   const [all, setAll] = useState<Invoice[]>([]);
@@ -52,9 +52,18 @@ function EditInvoice() {
           const { id: _id, ...rest } = existing;
           setDraft(rest);
         } else if (source) {
-          // Turning a proforma into an invoice: same customer and lines, new number and date.
+          // Turning a proforma into an invoice, or making the delivery note for an invoice:
+          // same customer and lines, new number and date.
           const { id: _id, ...rest } = source;
-          setDraft({ ...rest, kind: "invoice", number: nextNumber("invoice", invoices, business, today), issue_date: today, due_date: today });
+          const kind = kindParam === "delivery" ? "delivery" : "invoice";
+          setDraft({
+            ...rest,
+            kind,
+            number: nextNumber(kind, invoices, business, today),
+            issue_date: today,
+            due_date: today,
+            notes: kind === "delivery" ? `Réf. : ${source.number}` : rest.notes,
+          });
         } else if (id) {
           setStatus(v.notFound);
         } else {
@@ -95,6 +104,8 @@ function EditInvoice() {
     set({ lines: draft.lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) });
   const totals = invoiceTotals(draft);
   const base = `/${locale}/admin/invoices`;
+  // A delivery note lists what was handed over: no prices, totals or payment.
+  const priced = draft.kind !== "delivery";
 
   function fillFromOrder(orderId: string) {
     const order = orders.find((o) => o.id === orderId);
@@ -136,7 +147,7 @@ function EditInvoice() {
     <form onSubmit={save} className="admin-invoice-form">
       <div className="admin-head">
         <h1>
-          {draft.kind === "invoice" ? v.invoice : v.proforma} · <bdi dir="ltr">{draft.number}</bdi>
+          {{ invoice: v.invoice, proforma: v.proforma, delivery: v.delivery }[draft.kind]} · <bdi dir="ltr">{draft.number}</bdi>
         </h1>
         <Link className="btn btn--ghost" href={`${base}/`}>
           {v.back}
@@ -184,22 +195,24 @@ function EditInvoice() {
             {v.number}
             <input required dir="ltr" value={draft.number} onChange={(e) => set({ number: e.target.value })} />
           </label>
-          <label>
-            {v.payment}
-            <select value={draft.payment_method} onChange={(e) => set({ payment_method: e.target.value as Draft["payment_method"] })}>
-              {paymentMethods.map((m) => (
-                <option key={m} value={m}>
-                  {v.payments[m]}
-                </option>
-              ))}
-            </select>
-          </label>
+          {priced && (
+            <label>
+              {v.payment}
+              <select value={draft.payment_method} onChange={(e) => set({ payment_method: e.target.value as Draft["payment_method"] })}>
+                {paymentMethods.map((m) => (
+                  <option key={m} value={m}>
+                    {v.payments[m]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label>
             {v.issueDate}
             <input required type="date" value={draft.issue_date} onChange={(e) => set({ issue_date: e.target.value })} />
           </label>
           <label>
-            {draft.kind === "invoice" ? v.dueDate : v.validUntil}
+            {{ invoice: v.dueDate, proforma: v.validUntil, delivery: v.deliveryDate }[draft.kind]}
             <input required type="date" value={draft.due_date} onChange={(e) => set({ due_date: e.target.value })} />
           </label>
         </div>
@@ -218,7 +231,7 @@ function EditInvoice() {
           ))}
         </datalist>
         {draft.lines.map((line, i) => (
-          <div key={i} className="admin-line">
+          <div key={i} className={priced ? "admin-line" : "admin-line admin-line--noprice"}>
             <label className="admin-line__item">
               {i + 1}. {v.description}
               <input list="invoice-products" value={line.description} onChange={(e) => pickProduct(i, e.target.value)} />
@@ -231,18 +244,22 @@ function EditInvoice() {
               {v.qty}
               <input type="number" min={0} step="any" dir="ltr" value={line.qty} onChange={(e) => setLine(i, { qty: Number(e.target.value) })} />
             </label>
-            <label>
-              {v.unitPrice}
-              <input
-                type="number"
-                min={0}
-                step="any"
-                dir="ltr"
-                value={line.unit_price}
-                onChange={(e) => setLine(i, { unit_price: Number(e.target.value) })}
-              />
-            </label>
-            <span className="admin-line__amount">{formatPrice(line.qty * line.unit_price, locale)}</span>
+            {priced && (
+              <>
+                <label>
+                  {v.unitPrice}
+                  <input
+                    type="number"
+                    min={0}
+                    step="any"
+                    dir="ltr"
+                    value={line.unit_price}
+                    onChange={(e) => setLine(i, { unit_price: Number(e.target.value) })}
+                  />
+                </label>
+                <span className="admin-line__amount">{formatPrice(line.qty * line.unit_price, locale)}</span>
+              </>
+            )}
             <button
               type="button"
               className="admin-link"
@@ -260,37 +277,43 @@ function EditInvoice() {
 
       <section className="admin-card admin-section">
         <div className="admin-pair">
-          <label>
-            {v.discount}
-            <input type="number" min={0} step="any" dir="ltr" value={draft.discount} onChange={(e) => set({ discount: Number(e.target.value) })} />
-          </label>
-          <label>
-            {v.vatRate}
-            <input type="number" min={0} step="any" dir="ltr" value={draft.vat_rate} onChange={(e) => set({ vat_rate: Number(e.target.value) })} />
-          </label>
-          <label>
-            {v.stampDuty}
-            <input type="number" min={0} step="any" dir="ltr" value={draft.stamp_duty} onChange={(e) => set({ stamp_duty: Number(e.target.value) })} />
-          </label>
+          {priced && (
+            <>
+              <label>
+                {v.discount}
+                <input type="number" min={0} step="any" dir="ltr" value={draft.discount} onChange={(e) => set({ discount: Number(e.target.value) })} />
+              </label>
+              <label>
+                {v.vatRate}
+                <input type="number" min={0} step="any" dir="ltr" value={draft.vat_rate} onChange={(e) => set({ vat_rate: Number(e.target.value) })} />
+              </label>
+              <label>
+                {v.stampDuty}
+                <input type="number" min={0} step="any" dir="ltr" value={draft.stamp_duty} onChange={(e) => set({ stamp_duty: Number(e.target.value) })} />
+              </label>
+            </>
+          )}
           <label>
             {v.notes}
             <input value={draft.notes} onChange={(e) => set({ notes: e.target.value })} />
           </label>
         </div>
-        <dl className="admin-totals">
-          <dt>{v.subtotal}</dt>
-          <dd>{formatPrice(totals.subtotal, locale)}</dd>
-          {totals.vat > 0 && (
-            <>
-              <dt>{v.vat}</dt>
-              <dd>{formatPrice(totals.vat, locale)}</dd>
-            </>
-          )}
-          <dt>{v.net}</dt>
-          <dd>
-            <strong>{formatPrice(totals.net, locale)}</strong>
-          </dd>
-        </dl>
+        {priced && (
+          <dl className="admin-totals">
+            <dt>{v.subtotal}</dt>
+            <dd>{formatPrice(totals.subtotal, locale)}</dd>
+            {totals.vat > 0 && (
+              <>
+                <dt>{v.vat}</dt>
+                <dd>{formatPrice(totals.vat, locale)}</dd>
+              </>
+            )}
+            <dt>{v.net}</dt>
+            <dd>
+              <strong>{formatPrice(totals.net, locale)}</strong>
+            </dd>
+          </dl>
+        )}
       </section>
 
       <div className="admin-savebar">

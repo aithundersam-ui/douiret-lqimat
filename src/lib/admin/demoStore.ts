@@ -9,7 +9,7 @@ import { dateColumn, type DailyCount, type Member, type Range, type TableName, t
 // Demo mode: data lives only in this browser, seeded with sample numbers so
 // every screen has something to show. Used until Supabase is configured.
 
-const KEY = "douiret-demo-v3";
+const KEY = "douiret-demo-v4";
 type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent; business?: BusinessDetails; members?: Member[] };
 
 function id() {
@@ -88,6 +88,15 @@ function seed(): Data {
         lines: [
           { description: "Makrout", unit: "pièce", qty: 200, unit_price: 80 },
           { description: "Baklawa", unit: "pièce", qty: 100, unit_price: 150 },
+        ],
+      },
+      {
+        id: id(), kind: "delivery", number: `BL-${today.slice(0, 4)}-0001`, issue_date: addDays(today, -3), due_date: addDays(today, -3),
+        customer_name: "Nadia M.", customer_address: "Kouba, Alger", customer_phone: "0770 11 22 33", customer_tax_id: "",
+        payment_method: "cash", discount: 0, vat_rate: 0, stamp_duty: 0, notes: `Réf. : FAC-${today.slice(0, 4)}-0001`, order_id: null,
+        lines: [
+          { description: "Makrout", unit: "pièce", qty: 24, unit_price: 80 },
+          { description: "Lqimat (boîte)", unit: "boîte", qty: 2, unit_price: 600 },
         ],
       },
     ],

@@ -3,12 +3,15 @@ import { amountInWords, documentText, frDate, invoiceTotals, money, paymentText,
 import type { Invoice } from "@/lib/admin/types";
 
 /**
- * The printable invoice, laid out like the shop's invoice template:
+ * The printable invoice, proforma or delivery note, laid out like the shop's invoice template:
  * French and Arabic side by side, burgundy headers, peach accents.
+ * A delivery note (bon de livraison) only lists what was handed over: no prices, totals or payment.
  */
 export function InvoiceDocument({ invoice, business }: { invoice: Invoice; business: BusinessDetails }) {
   const text = documentText[invoice.kind];
   const totals = invoiceTotals(invoice);
+  const priced = invoice.kind !== "delivery";
+  const columns = priced ? 6 : 4;
   const contact = [business.phone && `Tél : ${business.phone}`, business.email].filter(Boolean).join("  •  ");
   const ids1 = [business.rc && `RC : ${business.rc}`, business.nif && `NIF : ${business.nif}`].filter(Boolean).join("  •  ");
   const ids2 = [business.nis && `NIS : ${business.nis}`, business.ai && `AI : ${business.ai}`].filter(Boolean).join("  •  ");
@@ -35,7 +38,7 @@ export function InvoiceDocument({ invoice, business }: { invoice: Invoice; busin
       <div className="invoice__boxes">
         <dl>
           <div className="invoice__boxhead">
-            FACTURÉ À <span>|</span> <span lang="ar">الزبون</span>
+            {priced ? "FACTURÉ À" : "LIVRÉ À"} <span>|</span> <span lang="ar">{priced ? "الزبون" : "تسليم إلى"}</span>
           </div>
           <Field fr="Nom" ar="الاسم" value={invoice.customer_name} />
           <Field fr="Adresse" ar="العنوان" value={invoice.customer_address} />
@@ -49,7 +52,7 @@ export function InvoiceDocument({ invoice, business }: { invoice: Invoice; busin
           <Field fr={text.number} ar="رقم" value={invoice.number} strong />
           <Field fr="Date" ar="التاريخ" value={frDate(invoice.issue_date)} strong />
           <Field fr={text.due} ar={text.dueAr} value={frDate(invoice.due_date)} strong />
-          <Field fr="Paiement" ar="الدفع" value={paymentText[invoice.payment_method]} strong />
+          {priced && <Field fr="Paiement" ar="الدفع" value={paymentText[invoice.payment_method]} strong />}
         </dl>
       </div>
 
@@ -62,8 +65,12 @@ export function InvoiceDocument({ invoice, business }: { invoice: Invoice; busin
             </th>
             <th>Unité</th>
             <th>Qté</th>
-            <th>P.U. (DA)</th>
-            <th>Montant (DA)</th>
+            {priced && (
+              <>
+                <th>P.U. (DA)</th>
+                <th>Montant (DA)</th>
+              </>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -73,70 +80,108 @@ export function InvoiceDocument({ invoice, business }: { invoice: Invoice; busin
               <td>{l.description}</td>
               <td className="c">{l.unit}</td>
               <td className="c">{l.qty}</td>
-              <td className="r">{money(l.unit_price)}</td>
-              <td className="r">{money(l.qty * l.unit_price)}</td>
+              {priced && (
+                <>
+                  <td className="r">{money(l.unit_price)}</td>
+                  <td className="r">{money(l.qty * l.unit_price)}</td>
+                </>
+              )}
             </tr>
           ))}
           {Array.from({ length: blankRows }, (_, i) => (
             <tr key={`blank-${i}`} aria-hidden>
-              <td colSpan={6}>&nbsp;</td>
+              <td colSpan={columns}>&nbsp;</td>
             </tr>
           ))}
         </tbody>
+        {!priced && (
+          <tfoot>
+            <tr>
+              <th colSpan={3}>
+                Total quantité <span>|</span> <span lang="ar">مجموع الكمية</span>
+              </th>
+              <td className="c">{invoice.lines.reduce((n, l) => n + (Number(l.qty) || 0), 0)}</td>
+            </tr>
+          </tfoot>
+        )}
       </table>
 
-      <div className="invoice__bottom">
-        <div className="invoice__terms">
-          <p className="invoice__label">
-            Mode de paiement / <span lang="ar">طريقة الدفع</span>
-          </p>
-          <p>{paymentText[invoice.payment_method]}</p>
-          {business.conditions && (
-            <>
+      {priced ? (
+        <>
+          <div className="invoice__bottom">
+            <div className="invoice__terms">
               <p className="invoice__label">
-                Conditions / <span lang="ar">الشروط</span>
+                Mode de paiement / <span lang="ar">طريقة الدفع</span>
               </p>
-              <p>{business.conditions}</p>
-            </>
-          )}
-          {invoice.notes && <p className="invoice__notes">{invoice.notes}</p>}
-        </div>
-        <table className="invoice__totals">
-          <tbody>
-            <Total fr="Total HT" ar="المجموع" value={totals.subtotal} />
-            <Total fr="Remise" ar="تخفيض" value={totals.discount} />
-            <Total fr={`TVA ${invoice.vat_rate}%`} ar="ر.ق.م" value={totals.vat} />
-            <Total fr="Droit de timbre" ar="حقوق الطابع" value={totals.stamp} />
-            <tr className="invoice__net">
-              <th>
-                NET À PAYER <span>|</span> <span lang="ar">الصافي للدفع</span>
-              </th>
-              <td>{money(totals.net)}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      {business.taxNote && <p className="invoice__taxnote">{business.taxNote}</p>}
+              <p>{paymentText[invoice.payment_method]}</p>
+              {business.conditions && (
+                <>
+                  <p className="invoice__label">
+                    Conditions / <span lang="ar">الشروط</span>
+                  </p>
+                  <p>{business.conditions}</p>
+                </>
+              )}
+              {invoice.notes && <p className="invoice__notes">{invoice.notes}</p>}
+            </div>
+            <table className="invoice__totals">
+              <tbody>
+                <Total fr="Total HT" ar="المجموع" value={totals.subtotal} />
+                <Total fr="Remise" ar="تخفيض" value={totals.discount} />
+                <Total fr={`TVA ${invoice.vat_rate}%`} ar="ر.ق.م" value={totals.vat} />
+                <Total fr="Droit de timbre" ar="حقوق الطابع" value={totals.stamp} />
+                <tr className="invoice__net">
+                  <th>
+                    NET À PAYER <span>|</span> <span lang="ar">الصافي للدفع</span>
+                  </th>
+                  <td>{money(totals.net)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          {business.taxNote && <p className="invoice__taxnote">{business.taxNote}</p>}
 
-      <p className="invoice__label invoice__stop">
-        {text.stop} <span>|</span> <span lang="ar">أوقفت هذه الفاتورة على مبلغ :</span>
-      </p>
-      <p className="invoice__words">{amountInWords(totals.net)}</p>
+          <p className="invoice__label invoice__stop">
+            {text.stop} <span>|</span> <span lang="ar">أوقفت هذه الفاتورة على مبلغ :</span>
+          </p>
+          <p className="invoice__words">{amountInWords(totals.net)}</p>
+        </>
+      ) : (
+        <>
+          {invoice.notes && <p className="invoice__notes">{invoice.notes}</p>}
+          <p className="invoice__label invoice__stop">
+            Marchandise reçue en bon état et conforme <span>|</span> <span lang="ar">تم استلام البضاعة في حالة جيدة ومطابقة</span>
+          </p>
+        </>
+      )}
 
       <div className="invoice__signatures">
-        <p>
-          Signature du client <span>|</span> <span lang="ar">إمضاء الزبون</span>
-        </p>
-        <p>
-          Cachet et signature <span>|</span> <span lang="ar">الختم والإمضاء</span>
-        </p>
+        {priced ? (
+          <>
+            <p>
+              Signature du client <span>|</span> <span lang="ar">إمضاء الزبون</span>
+            </p>
+            <p>
+              Cachet et signature <span>|</span> <span lang="ar">الختم والإمضاء</span>
+            </p>
+          </>
+        ) : (
+          <>
+            <p>
+              Livré par (cachet et signature) <span>|</span> <span lang="ar">المُسلِّم</span>
+            </p>
+            <p>
+              Reçu par (nom et signature) <span>|</span> <span lang="ar">المُستلِم</span>
+            </p>
+          </>
+        )}
       </div>
 
       <footer className="invoice__footer">
         <p className="invoice__thanks">
           Merci de votre confiance • <span lang="ar">شكراً لثقتكم</span>
         </p>
-        {business.rib && <p>RIB / CCP : {business.rib}</p>}
+        {priced && business.rib && <p>RIB / CCP : {business.rib}</p>}
       </footer>
     </article>
   );

@@ -802,6 +802,9 @@ button.btn {
   .admin-line__item {
     grid-column: auto;
   }
+  .admin-line--noprice {
+    grid-template-columns: 3fr 1fr 0.8fr auto;
+  }
 }
 
 .admin-totals {
@@ -967,6 +970,14 @@ button.btn {
 .invoice__lines .r {
   text-align: end;
   white-space: nowrap;
+}
+
+.invoice__lines tfoot th {
+  text-align: end;
+}
+
+.invoice__lines tfoot td {
+  font-weight: 700;
 }
 
 .invoice__bottom {

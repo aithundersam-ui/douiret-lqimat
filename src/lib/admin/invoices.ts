@@ -20,6 +20,7 @@ export type BusinessDetails = {
   conditions: string;
   invoicePrefix: string;
   proformaPrefix: string;
+  deliveryPrefix: string;
 };
 
 export const defaultBusiness: BusinessDetails = {
@@ -38,6 +39,7 @@ export const defaultBusiness: BusinessDetails = {
   conditions: "Paiement à la livraison / الدفع عند الاستلام",
   invoicePrefix: "FAC",
   proformaPrefix: "PRO",
+  deliveryPrefix: "BL",
 };
 
 export function withBusinessDefaults(saved: Partial<BusinessDetails> | null | undefined): BusinessDetails {
@@ -48,7 +50,10 @@ export function withBusinessDefaults(saved: Partial<BusinessDetails> | null | un
 export const documentText = {
   invoice: { title: "FACTURE", titleAr: "فاتورة", number: "N° facture", due: "Échéance", dueAr: "الاستحقاق", stop: "Arrêtée la présente facture à la somme de" },
   proforma: { title: "FACTURE PROFORMA", titleAr: "فاتورة شكلية", number: "N° proforma", due: "Valable jusqu'au", dueAr: "صالحة إلى غاية", stop: "Arrêtée la présente facture proforma à la somme de" },
+  delivery: { title: "BON DE LIVRAISON", titleAr: "وصل التسليم", number: "N° BL", due: "Date de livraison", dueAr: "تاريخ التسليم", stop: "" },
 } as const;
+
+const prefixField = { invoice: "invoicePrefix", proforma: "proformaPrefix", delivery: "deliveryPrefix" } as const;
 
 export const paymentText: Record<PaymentMethod, string> = {
   cash: "Espèces / نقداً",
@@ -59,9 +64,9 @@ export const paymentText: Record<PaymentMethod, string> = {
 
 export const unitText: Record<Unit, string> = { piece: "pièce", kg: "kg", box: "boîte", tray: "plateau" };
 
-/** Next free number for the year, like FAC-2026-0007. */
+/** Next free number for the year, like FAC-2026-0007 or BL-2026-0003. */
 export function nextNumber(kind: InvoiceKind, existing: Pick<Invoice, "number">[], business: BusinessDetails, day: string) {
-  const prefix = `${kind === "invoice" ? business.invoicePrefix : business.proformaPrefix}-${day.slice(0, 4)}-`;
+  const prefix = `${business[prefixField[kind]]}-${day.slice(0, 4)}-`;
   let max = 0;
   for (const { number } of existing) {
     if (number.startsWith(prefix)) max = Math.max(max, Number(number.slice(prefix.length)) || 0);

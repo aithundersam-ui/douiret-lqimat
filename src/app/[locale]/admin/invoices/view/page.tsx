@@ -69,6 +69,11 @@ function ViewInvoice() {
               {v.toInvoice}
             </Link>
           )}
+          {invoice.kind !== "delivery" && (
+            <Link href={`${base}/edit/?from=${invoice.id}&kind=delivery`} className="btn btn--ghost">
+              {v.toDelivery}
+            </Link>
+          )}
           <button className="btn btn--primary" onClick={() => window.print()}>
             {v.print}
           </button>

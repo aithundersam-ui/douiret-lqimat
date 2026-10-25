@@ -100,10 +100,10 @@ alter table public.products alter column name_ar set default '';
 alter table public.team_members add column if not exists name_en text not null default '';
 alter table public.team_members add column if not exists role_en text not null default '';
 
--- Invoices and proforma invoices made from the staff area (Invoices screen).
+-- Invoices, proforma invoices and delivery notes (bons de livraison) made from the staff area (Invoices screen).
 create table if not exists public.invoices (
   id uuid primary key default gen_random_uuid(),
-  kind text not null default 'invoice' check (kind in ('invoice', 'proforma')),
+  kind text not null default 'invoice' check (kind in ('invoice', 'proforma', 'delivery')),
   number text not null unique,
   issue_date date not null default current_date,
   due_date date not null default current_date,
@@ -120,6 +120,10 @@ create table if not exists public.invoices (
   order_id uuid references public.orders (id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+-- Delivery notes (bons de livraison) were added after the first version of the table.
+alter table public.invoices drop constraint if exists invoices_kind_check;
+alter table public.invoices add constraint invoices_kind_check check (kind in ('invoice', 'proforma', 'delivery'));
 
 -- Staff-only settings, such as the business details printed on invoices.
 create table if not exists public.settings (

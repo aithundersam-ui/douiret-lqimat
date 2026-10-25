@@ -37,13 +37,16 @@ export default function InvoicesPage() {
           <Link className="btn btn--ghost" href={`${base}/edit/?kind=proforma`}>
             + {v.newProforma}
           </Link>
+          <Link className="btn btn--ghost" href={`${base}/edit/?kind=delivery`}>
+            + {v.newDelivery}
+          </Link>
         </div>
       </div>
 
       <div className="admin-segment admin-segment--start" role="tablist">
-        {(["all", "invoice", "proforma"] as const).map((k) => (
+        {(["all", "invoice", "proforma", "delivery"] as const).map((k) => (
           <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}>
-            {k === "all" ? v.all : k === "invoice" ? v.invoices : v.proformas}
+            {{ all: v.all, invoice: v.invoices, proforma: v.proformas, delivery: v.deliveries }[k]}
           </button>
         ))}
       </div>
@@ -65,10 +68,15 @@ export default function InvoicesPage() {
                   {inv.number} · {inv.customer_name || "—"}
                 </strong>
                 <span>
-                  {inv.kind === "invoice" ? v.invoice : v.proforma} · {inv.issue_date}
+                  {{ invoice: v.invoice, proforma: v.proforma, delivery: v.delivery }[inv.kind]} · {inv.issue_date}
                 </span>
               </span>
-              <span className="admin-row__aside">{formatPrice(invoiceTotals(inv).net, locale)}</span>
+              <span className="admin-row__aside">
+                {/* A delivery note has no prices, so it shows how many items were delivered. */}
+                {inv.kind === "delivery"
+                  ? `${inv.lines.reduce((n, l) => n + (Number(l.qty) || 0), 0)} ${v.itemCount}`
+                  : formatPrice(invoiceTotals(inv).net, locale)}
+              </span>
             </Link>
           </li>
         ))}
@@ -79,7 +87,7 @@ export default function InvoicesPage() {
   );
 }
 
-const fields = ["name", "slogan", "address", "phone", "email", "rc", "nif", "nis", "ai", "rib", "vatRate", "taxNote", "conditions", "invoicePrefix", "proformaPrefix"] as const;
+const fields = ["name", "slogan", "address", "phone", "email", "rc", "nif", "nis", "ai", "rib", "vatRate", "taxNote", "conditions", "invoicePrefix", "proformaPrefix", "deliveryPrefix"] as const;
 
 function BusinessForm() {
   const { store, t } = useAdmin();
@@ -108,6 +116,7 @@ function BusinessForm() {
     conditions: v.conditions,
     invoicePrefix: v.invoicePrefix,
     proformaPrefix: v.proformaPrefix,
+    deliveryPrefix: v.deliveryPrefix,
   };
 
   return (

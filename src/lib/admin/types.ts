@@ -88,7 +88,7 @@ export type TeamMemberRow = {
   sort: number;
 };
 
-export const invoiceKinds = ["invoice", "proforma"] as const;
+export const invoiceKinds = ["invoice", "proforma", "delivery"] as const;
 export type InvoiceKind = (typeof invoiceKinds)[number];
 
 export const paymentMethods = ["cash", "transfer", "ccp", "cheque"] as const;
