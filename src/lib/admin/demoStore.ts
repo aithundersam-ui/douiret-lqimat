@@ -50,7 +50,7 @@ function seed(): Data {
     const day = addDays(today, -i);
     const weekend = new Date(day).getDay() === 5 ? 0.5 : 1;
     for (const p of products) {
-      const base = p.unit === "piece" ? 30 + rand() * 50 : 2 + rand() * 4;
+      const base = p.unit === "piece" || p.unit === "cup" ? 30 + rand() * 50 : 2 + rand() * 4;
       const produced = Math.round(base * weekend);
       const wasted = Math.round(produced * rand() * 0.12);
       const sold = Math.max(0, produced - wasted - Math.round(rand() * produced * 0.05));

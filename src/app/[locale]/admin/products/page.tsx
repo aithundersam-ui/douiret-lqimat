@@ -24,7 +24,7 @@ export default function ProductsPage() {
         { key: "name_fr", label: p.nameFr, type: "text" },
         { key: "category", label: p.category, type: "select", options: categories.map((c) => ({ value: c.id, label: pick(c.name, locale) })) },
         { key: "source", label: p.source, type: "select", options: (["made", "resale"] as const).map((v) => ({ value: v, label: p.sources[v] })) },
-        { key: "unit", label: p.unit, type: "select", options: (["piece", "kg", "box", "tray"] as const).map((v) => ({ value: v, label: p.units[v] })) },
+        { key: "unit", label: p.unit, type: "select", options: (["piece", "kg", "box", "tray", "cup"] as const).map((v) => ({ value: v, label: p.units[v] })) },
         { key: "price", label: p.price, type: "number", required: true },
         { key: "unit_cost", label: p.unitCost, type: "number" },
         { key: "active", label: p.active, type: "checkbox" },
