@@ -104,8 +104,8 @@ function EditInvoice() {
     set({ lines: draft.lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) });
   const totals = invoiceTotals(draft);
   const base = `/${locale}/admin/invoices`;
-  // A delivery note lists what was handed over: no prices, totals or payment.
-  const priced = draft.kind !== "delivery";
+  // A delivery note has prices and totals, but no payment method.
+  const delivery = draft.kind === "delivery";
 
   function fillFromOrder(orderId: string) {
     const order = orders.find((o) => o.id === orderId);
@@ -195,7 +195,7 @@ function EditInvoice() {
             {v.number}
             <input required dir="ltr" value={draft.number} onChange={(e) => set({ number: e.target.value })} />
           </label>
-          {priced && (
+          {!delivery && (
             <label>
               {v.payment}
               <select value={draft.payment_method} onChange={(e) => set({ payment_method: e.target.value as Draft["payment_method"] })}>
@@ -231,7 +231,7 @@ function EditInvoice() {
           ))}
         </datalist>
         {draft.lines.map((line, i) => (
-          <div key={i} className={priced ? "admin-line" : "admin-line admin-line--noprice"}>
+          <div key={i} className="admin-line">
             <label className="admin-line__item">
               {i + 1}. {v.description}
               <input list="invoice-products" value={line.description} onChange={(e) => pickProduct(i, e.target.value)} />
@@ -244,22 +244,18 @@ function EditInvoice() {
               {v.qty}
               <input type="number" min={0} step="any" dir="ltr" value={line.qty} onChange={(e) => setLine(i, { qty: Number(e.target.value) })} />
             </label>
-            {priced && (
-              <>
-                <label>
-                  {v.unitPrice}
-                  <input
-                    type="number"
-                    min={0}
-                    step="any"
-                    dir="ltr"
-                    value={line.unit_price}
-                    onChange={(e) => setLine(i, { unit_price: Number(e.target.value) })}
-                  />
-                </label>
-                <span className="admin-line__amount">{formatPrice(line.qty * line.unit_price, locale)}</span>
-              </>
-            )}
+            <label>
+              {v.unitPrice}
+              <input
+                type="number"
+                min={0}
+                step="any"
+                dir="ltr"
+                value={line.unit_price}
+                onChange={(e) => setLine(i, { unit_price: Number(e.target.value) })}
+              />
+            </label>
+            <span className="admin-line__amount">{formatPrice(line.qty * line.unit_price, locale)}</span>
             <button
               type="button"
               className="admin-link"
@@ -277,43 +273,37 @@ function EditInvoice() {
 
       <section className="admin-card admin-section">
         <div className="admin-pair">
-          {priced && (
-            <>
-              <label>
-                {v.discount}
-                <input type="number" min={0} step="any" dir="ltr" value={draft.discount} onChange={(e) => set({ discount: Number(e.target.value) })} />
-              </label>
-              <label>
-                {v.vatRate}
-                <input type="number" min={0} step="any" dir="ltr" value={draft.vat_rate} onChange={(e) => set({ vat_rate: Number(e.target.value) })} />
-              </label>
-              <label>
-                {v.stampDuty}
-                <input type="number" min={0} step="any" dir="ltr" value={draft.stamp_duty} onChange={(e) => set({ stamp_duty: Number(e.target.value) })} />
-              </label>
-            </>
-          )}
+          <label>
+            {v.discount}
+            <input type="number" min={0} step="any" dir="ltr" value={draft.discount} onChange={(e) => set({ discount: Number(e.target.value) })} />
+          </label>
+          <label>
+            {v.vatRate}
+            <input type="number" min={0} step="any" dir="ltr" value={draft.vat_rate} onChange={(e) => set({ vat_rate: Number(e.target.value) })} />
+          </label>
+          <label>
+            {v.stampDuty}
+            <input type="number" min={0} step="any" dir="ltr" value={draft.stamp_duty} onChange={(e) => set({ stamp_duty: Number(e.target.value) })} />
+          </label>
           <label>
             {v.notes}
             <input value={draft.notes} onChange={(e) => set({ notes: e.target.value })} />
           </label>
         </div>
-        {priced && (
-          <dl className="admin-totals">
-            <dt>{v.subtotal}</dt>
-            <dd>{formatPrice(totals.subtotal, locale)}</dd>
-            {totals.vat > 0 && (
-              <>
-                <dt>{v.vat}</dt>
-                <dd>{formatPrice(totals.vat, locale)}</dd>
-              </>
-            )}
-            <dt>{v.net}</dt>
-            <dd>
-              <strong>{formatPrice(totals.net, locale)}</strong>
-            </dd>
-          </dl>
-        )}
+        <dl className="admin-totals">
+          <dt>{v.subtotal}</dt>
+          <dd>{formatPrice(totals.subtotal, locale)}</dd>
+          {totals.vat > 0 && (
+            <>
+              <dt>{v.vat}</dt>
+              <dd>{formatPrice(totals.vat, locale)}</dd>
+            </>
+          )}
+          <dt>{v.net}</dt>
+          <dd>
+            <strong>{formatPrice(totals.net, locale)}</strong>
+          </dd>
+        </dl>
       </section>
 
       <div className="admin-savebar">

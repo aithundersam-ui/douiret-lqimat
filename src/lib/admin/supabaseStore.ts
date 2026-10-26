@@ -69,7 +69,9 @@ export function createSupabaseStore(url: string, key: string): Store {
     },
 
     async remove(table, id) {
-      check(await db.from(table).delete().eq("id", id));
+      const deleted = check(await db.from(table).delete().eq("id", id).select("id"));
+      // The database silently skips rows a user may not delete (invoices: master admin only).
+      if (table === "invoices" && !deleted?.length) throw new Error("Only the master admin can delete invoices.");
     },
 
     async saveDailyCounts(rows) {

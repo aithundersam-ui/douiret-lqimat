@@ -802,9 +802,6 @@ button.btn {
   .admin-line__item {
     grid-column: auto;
   }
-  .admin-line--noprice {
-    grid-template-columns: 3fr 1fr 0.8fr auto;
-  }
 }
 
 .admin-totals {

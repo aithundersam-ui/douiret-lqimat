@@ -48,9 +48,9 @@ export function withBusinessDefaults(saved: Partial<BusinessDetails> | null | un
 
 // The printed document follows the shop's template: French and Arabic side by side.
 export const documentText = {
-  invoice: { title: "FACTURE", titleAr: "فاتورة", number: "N° facture", due: "Échéance", dueAr: "الاستحقاق", stop: "Arrêtée la présente facture à la somme de" },
-  proforma: { title: "FACTURE PROFORMA", titleAr: "فاتورة شكلية", number: "N° proforma", due: "Valable jusqu'au", dueAr: "صالحة إلى غاية", stop: "Arrêtée la présente facture proforma à la somme de" },
-  delivery: { title: "BON DE LIVRAISON", titleAr: "وصل التسليم", number: "N° BL", due: "Date de livraison", dueAr: "تاريخ التسليم", stop: "" },
+  invoice: { title: "FACTURE", titleAr: "فاتورة", number: "N° facture", due: "Échéance", dueAr: "الاستحقاق", stop: "Arrêtée la présente facture à la somme de", stopAr: "أوقفت هذه الفاتورة على مبلغ :", net: "NET À PAYER", netAr: "الصافي للدفع" },
+  proforma: { title: "FACTURE PROFORMA", titleAr: "فاتورة شكلية", number: "N° proforma", due: "Valable jusqu'au", dueAr: "صالحة إلى غاية", stop: "Arrêtée la présente facture proforma à la somme de", stopAr: "أوقفت هذه الفاتورة على مبلغ :", net: "NET À PAYER", netAr: "الصافي للدفع" },
+  delivery: { title: "BON DE LIVRAISON", titleAr: "وصل التسليم", number: "N° BL", due: "Date de livraison", dueAr: "تاريخ التسليم", stop: "Arrêté le présent bon de livraison à la somme de", stopAr: "أوقف هذا الوصل على مبلغ :", net: "MONTANT TOTAL", netAr: "المبلغ الإجمالي" },
 } as const;
 
 const prefixField = { invoice: "invoicePrefix", proforma: "proformaPrefix", delivery: "deliveryPrefix" } as const;

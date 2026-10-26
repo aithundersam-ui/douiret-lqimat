@@ -5,13 +5,13 @@ import type { Invoice } from "@/lib/admin/types";
 /**
  * The printable invoice, proforma or delivery note, laid out like the shop's invoice template:
  * French and Arabic side by side, burgundy headers, peach accents.
- * A delivery note (bon de livraison) only lists what was handed over: no prices, totals or payment.
+ * A delivery note (bon de livraison) has prices and totals too, but no payment terms,
+ * and is signed by the person delivering and the person receiving.
  */
 export function InvoiceDocument({ invoice, business }: { invoice: Invoice; business: BusinessDetails }) {
   const text = documentText[invoice.kind];
   const totals = invoiceTotals(invoice);
-  const priced = invoice.kind !== "delivery";
-  const columns = priced ? 6 : 4;
+  const delivery = invoice.kind === "delivery";
   const contact = [business.phone && `Tél : ${business.phone}`, business.email].filter(Boolean).join("  •  ");
   const ids1 = [business.rc && `RC : ${business.rc}`, business.nif && `NIF : ${business.nif}`].filter(Boolean).join("  •  ");
   const ids2 = [business.nis && `NIS : ${business.nis}`, business.ai && `AI : ${business.ai}`].filter(Boolean).join("  •  ");
@@ -38,7 +38,7 @@ export function InvoiceDocument({ invoice, business }: { invoice: Invoice; busin
       <div className="invoice__boxes">
         <dl>
           <div className="invoice__boxhead">
-            {priced ? "FACTURÉ À" : "LIVRÉ À"} <span>|</span> <span lang="ar">{priced ? "الزبون" : "تسليم إلى"}</span>
+            {delivery ? "LIVRÉ À" : "FACTURÉ À"} <span>|</span> <span lang="ar">{delivery ? "تسليم إلى" : "الزبون"}</span>
           </div>
           <Field fr="Nom" ar="الاسم" value={invoice.customer_name} />
           <Field fr="Adresse" ar="العنوان" value={invoice.customer_address} />
@@ -52,7 +52,7 @@ export function InvoiceDocument({ invoice, business }: { invoice: Invoice; busin
           <Field fr={text.number} ar="رقم" value={invoice.number} strong />
           <Field fr="Date" ar="التاريخ" value={frDate(invoice.issue_date)} strong />
           <Field fr={text.due} ar={text.dueAr} value={frDate(invoice.due_date)} strong />
-          {priced && <Field fr="Paiement" ar="الدفع" value={paymentText[invoice.payment_method]} strong />}
+          {!delivery && <Field fr="Paiement" ar="الدفع" value={paymentText[invoice.payment_method]} strong />}
         </dl>
       </div>
 
@@ -65,12 +65,8 @@ export function InvoiceDocument({ invoice, business }: { invoice: Invoice; busin
             </th>
             <th>Unité</th>
             <th>Qté</th>
-            {priced && (
-              <>
-                <th>P.U. (DA)</th>
-                <th>Montant (DA)</th>
-              </>
-            )}
+            <th>P.U. (DA)</th>
+            <th>Montant (DA)</th>
           </tr>
         </thead>
         <tbody>
@@ -80,36 +76,37 @@ export function InvoiceDocument({ invoice, business }: { invoice: Invoice; busin
               <td>{l.description}</td>
               <td className="c">{l.unit}</td>
               <td className="c">{l.qty}</td>
-              {priced && (
-                <>
-                  <td className="r">{money(l.unit_price)}</td>
-                  <td className="r">{money(l.qty * l.unit_price)}</td>
-                </>
-              )}
+              <td className="r">{money(l.unit_price)}</td>
+              <td className="r">{money(l.qty * l.unit_price)}</td>
             </tr>
           ))}
           {Array.from({ length: blankRows }, (_, i) => (
             <tr key={`blank-${i}`} aria-hidden>
-              <td colSpan={columns}>&nbsp;</td>
+              <td colSpan={6}>&nbsp;</td>
             </tr>
           ))}
         </tbody>
-        {!priced && (
+        {delivery && (
           <tfoot>
             <tr>
               <th colSpan={3}>
                 Total quantité <span>|</span> <span lang="ar">مجموع الكمية</span>
               </th>
               <td className="c">{invoice.lines.reduce((n, l) => n + (Number(l.qty) || 0), 0)}</td>
+              <td colSpan={2} />
             </tr>
           </tfoot>
         )}
       </table>
 
-      {priced ? (
-        <>
-          <div className="invoice__bottom">
-            <div className="invoice__terms">
+      <div className="invoice__bottom">
+        <div className="invoice__terms">
+          {delivery ? (
+            <p className="invoice__label">
+              Marchandise reçue en bon état et conforme <span>|</span> <span lang="ar">تم استلام البضاعة في حالة جيدة ومطابقة</span>
+            </p>
+          ) : (
+            <>
               <p className="invoice__label">
                 Mode de paiement / <span lang="ar">طريقة الدفع</span>
               </p>
@@ -122,41 +119,34 @@ export function InvoiceDocument({ invoice, business }: { invoice: Invoice; busin
                   <p>{business.conditions}</p>
                 </>
               )}
-              {invoice.notes && <p className="invoice__notes">{invoice.notes}</p>}
-            </div>
-            <table className="invoice__totals">
-              <tbody>
-                <Total fr="Total HT" ar="المجموع" value={totals.subtotal} />
-                <Total fr="Remise" ar="تخفيض" value={totals.discount} />
-                <Total fr={`TVA ${invoice.vat_rate}%`} ar="ر.ق.م" value={totals.vat} />
-                <Total fr="Droit de timbre" ar="حقوق الطابع" value={totals.stamp} />
-                <tr className="invoice__net">
-                  <th>
-                    NET À PAYER <span>|</span> <span lang="ar">الصافي للدفع</span>
-                  </th>
-                  <td>{money(totals.net)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          {business.taxNote && <p className="invoice__taxnote">{business.taxNote}</p>}
-
-          <p className="invoice__label invoice__stop">
-            {text.stop} <span>|</span> <span lang="ar">أوقفت هذه الفاتورة على مبلغ :</span>
-          </p>
-          <p className="invoice__words">{amountInWords(totals.net)}</p>
-        </>
-      ) : (
-        <>
+            </>
+          )}
           {invoice.notes && <p className="invoice__notes">{invoice.notes}</p>}
-          <p className="invoice__label invoice__stop">
-            Marchandise reçue en bon état et conforme <span>|</span> <span lang="ar">تم استلام البضاعة في حالة جيدة ومطابقة</span>
-          </p>
-        </>
-      )}
+        </div>
+        <table className="invoice__totals">
+          <tbody>
+            <Total fr="Total HT" ar="المجموع" value={totals.subtotal} />
+            <Total fr="Remise" ar="تخفيض" value={totals.discount} />
+            <Total fr={`TVA ${invoice.vat_rate}%`} ar="ر.ق.م" value={totals.vat} />
+            <Total fr="Droit de timbre" ar="حقوق الطابع" value={totals.stamp} />
+            <tr className="invoice__net">
+              <th>
+                {text.net} <span>|</span> <span lang="ar">{text.netAr}</span>
+              </th>
+              <td>{money(totals.net)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {business.taxNote && <p className="invoice__taxnote">{business.taxNote}</p>}
+
+      <p className="invoice__label invoice__stop">
+        {text.stop} <span>|</span> <span lang="ar">{text.stopAr}</span>
+      </p>
+      <p className="invoice__words">{amountInWords(totals.net)}</p>
 
       <div className="invoice__signatures">
-        {priced ? (
+        {!delivery ? (
           <>
             <p>
               Signature du client <span>|</span> <span lang="ar">إمضاء الزبون</span>
@@ -181,7 +171,7 @@ export function InvoiceDocument({ invoice, business }: { invoice: Invoice; busin
         <p className="invoice__thanks">
           Merci de votre confiance • <span lang="ar">شكراً لثقتكم</span>
         </p>
-        {priced && business.rib && <p>RIB / CCP : {business.rib}</p>}
+        {!delivery && business.rib && <p>RIB / CCP : {business.rib}</p>}
       </footer>
     </article>
   );

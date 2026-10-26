@@ -202,7 +202,6 @@ export function createDemoStore(): Store {
       save();
     },
     async remove(table, rowId) {
-      if (table === "invoices") throw new Error("Invoices are kept and can't be deleted.");
       data = { ...data, [table]: (data[table] as { id: string }[]).filter((r) => r.id !== rowId) };
       if (table === "products") data.daily_counts = data.daily_counts.filter((c) => c.product_id !== rowId);
       save();
