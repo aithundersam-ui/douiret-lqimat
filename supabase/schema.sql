@@ -173,7 +173,13 @@ begin
   end loop;
 end $$;
 
--- Invoices are kept for good: staff can create, read and correct them, but not delete them.
+-- The master admin (see staff_profiles below) is the only one who can delete invoices.
+create or replace function public.is_master() returns boolean
+  language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.staff_profiles where user_id = auth.uid() and role = 'master' and active)
+$$;
+
+-- Invoices, proformas and delivery notes: staff can create, read and correct them; only the master admin can delete them.
 alter table public.invoices enable row level security;
 drop policy if exists "staff full access" on public.invoices;
 drop policy if exists "staff read invoices" on public.invoices;
@@ -182,6 +188,8 @@ drop policy if exists "staff create invoices" on public.invoices;
 create policy "staff create invoices" on public.invoices for insert to authenticated with check (public.is_active_staff());
 drop policy if exists "staff correct invoices" on public.invoices;
 create policy "staff correct invoices" on public.invoices for update to authenticated using (public.is_active_staff()) with check (public.is_active_staff());
+drop policy if exists "master deletes invoices" on public.invoices;
+create policy "master deletes invoices" on public.invoices for delete to authenticated using (public.is_master());
 
 -- Each staff member can read their own profile (to know if they are master). Nobody can change it from the app.
 alter table public.staff_profiles enable row level security;

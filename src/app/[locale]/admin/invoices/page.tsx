@@ -71,12 +71,7 @@ export default function InvoicesPage() {
                   {{ invoice: v.invoice, proforma: v.proforma, delivery: v.delivery }[inv.kind]} · {inv.issue_date}
                 </span>
               </span>
-              <span className="admin-row__aside">
-                {/* A delivery note has no prices, so it shows how many items were delivered. */}
-                {inv.kind === "delivery"
-                  ? `${inv.lines.reduce((n, l) => n + (Number(l.qty) || 0), 0)} ${v.itemCount}`
-                  : formatPrice(invoiceTotals(inv).net, locale)}
-              </span>
+              <span className="admin-row__aside">{formatPrice(invoiceTotals(inv).net, locale)}</span>
             </Link>
           </li>
         ))}

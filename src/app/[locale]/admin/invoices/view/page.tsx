@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { useAdmin } from "@/components/admin/AdminContext";
 import { InvoiceDocument } from "@/components/admin/InvoiceDocument";
@@ -17,8 +17,9 @@ export default function ViewInvoicePage() {
 }
 
 function ViewInvoice() {
-  const { store, t, locale } = useAdmin();
+  const { store, t, locale, role } = useAdmin();
   const v = t.invoices;
+  const router = useRouter();
   const id = useSearchParams().get("id");
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [business, setBusiness] = useState<BusinessDetails | null>(null);
@@ -73,6 +74,22 @@ function ViewInvoice() {
             <Link href={`${base}/edit/?from=${invoice.id}&kind=delivery`} className="btn btn--ghost">
               {v.toDelivery}
             </Link>
+          )}
+          {role === "master" && (
+            <button
+              className="btn btn--danger"
+              onClick={async () => {
+                if (!confirm(v.confirmRemove)) return;
+                try {
+                  await store.remove("invoices", invoice.id);
+                  router.push(`${base}/`);
+                } catch (err) {
+                  setStatus((err as Error).message);
+                }
+              }}
+            >
+              {v.remove}
+            </button>
           )}
           <button className="btn btn--primary" onClick={() => window.print()}>
             {v.print}
