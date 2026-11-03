@@ -1,4 +1,5 @@
 import type { HomeContent } from "@/lib/site/content";
+import type { MenuQrTarget } from "@/lib/site/qr";
 import type { BusinessDetails } from "./invoices";
 import type { Member, MemberChanges, Range, StaffRole, TableName, Tables } from "./types";
 
@@ -26,6 +27,9 @@ export interface Store {
   /** The shop's details printed on invoices (null if never saved). */
   getBusiness(): Promise<Partial<BusinessDetails> | null>;
   saveBusiness(details: BusinessDetails): Promise<void>;
+  /** Which menu the printed QR code opens (null if never saved). Only the master admin can change it. */
+  getMenuQr(): Promise<MenuQrTarget | null>;
+  saveMenuQr(target: MenuQrTarget): Promise<void>;
   /** The signed-in person's role: only the master admin manages accounts. */
   currentRole(): Promise<StaffRole>;
   /** Staff accounts, master admin only. `me` is the signed-in account's id. */

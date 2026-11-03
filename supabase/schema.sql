@@ -191,6 +191,23 @@ create policy "staff correct invoices" on public.invoices for update to authenti
 drop policy if exists "master deletes invoices" on public.invoices;
 create policy "master deletes invoices" on public.invoices for delete to authenticated using (public.is_master());
 
+-- Where the printed menu QR code (https://douiret-lqimat.netlify.app/qr/) sends visitors.
+-- Everyone can read it (the /qr/ page does); only the master admin can change it.
+create table if not exists public.qr_links (
+  id text primary key,
+  lang text not null default 'auto' check (lang in ('auto', 'en', 'ar', 'fr')),
+  section text not null default '' check (section in ('', 'sweets', 'salty', 'drinks')),
+  updated_at timestamptz not null default now()
+);
+insert into public.qr_links (id) values ('menu') on conflict (id) do nothing;
+alter table public.qr_links enable row level security;
+drop policy if exists "everyone reads qr links" on public.qr_links;
+create policy "everyone reads qr links" on public.qr_links for select to anon, authenticated using (true);
+drop policy if exists "master changes qr links" on public.qr_links;
+create policy "master changes qr links" on public.qr_links for update to authenticated using (public.is_master()) with check (public.is_master());
+drop policy if exists "master adds qr links" on public.qr_links;
+create policy "master adds qr links" on public.qr_links for insert to authenticated with check (public.is_master());
+
 -- Each staff member can read their own profile (to know if they are master). Nobody can change it from the app.
 alter table public.staff_profiles enable row level security;
 drop policy if exists "read own profile" on public.staff_profiles;

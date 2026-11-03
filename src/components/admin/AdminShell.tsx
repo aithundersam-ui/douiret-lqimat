@@ -43,7 +43,12 @@ export function AdminShell({ locale, children }: { locale: AdminLocale; children
     { href: `${base}/purchases/`, label: t.nav.purchases },
     { href: `${base}/expenses/`, label: t.nav.expenses },
     { href: `${base}/website/`, label: t.nav.website },
-    ...(role === "master" ? [{ href: `${base}/members/`, label: t.nav.members }] : []),
+    ...(role === "master"
+      ? [
+          { href: `${base}/qr/`, label: t.nav.qr },
+          { href: `${base}/members/`, label: t.nav.members },
+        ]
+      : []),
   ];
   const other: AdminLocale = locale === "ar" ? "en" : "ar";
   const current = pathname.endsWith("/") ? pathname : `${pathname}/`;

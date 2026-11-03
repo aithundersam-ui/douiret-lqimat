@@ -1116,3 +1116,36 @@ button.btn {
     box-shadow: none;
   }
 }
+
+/* Menu QR code screen */
+.admin-qr {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+}
+
+.admin-qr__code svg {
+  display: block;
+  width: 100%;
+  max-width: 16rem;
+  height: auto;
+  margin-inline: auto;
+}
+
+.admin-qr__label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.admin-qr__url {
+  margin: 0.2rem 0 1rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 760px) {
+  .admin-qr {
+    grid-template-columns: 16rem 1fr;
+  }
+}
