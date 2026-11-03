@@ -1,12 +1,9 @@
 "use client";
 
-import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { useAdmin } from "@/components/admin/AdminContext";
+import { menuQrPng, menuQrSvg } from "@/lib/admin/menuQr";
 import { defaultMenuQr, menuQrPath, menuQrUrl, type MenuQrTarget } from "@/lib/site/qr";
-
-// Burgundy on white, like the shop's logo; "M" error correction survives a smudged print.
-const qrOptions = { errorCorrectionLevel: "M", margin: 4, color: { dark: "#72252A", light: "#FFFFFF" } } as const;
 
 export default function QrPage() {
   const { store, t, role } = useAdmin();
@@ -18,7 +15,7 @@ export default function QrPage() {
   useEffect(() => {
     if (role !== "master") return;
     store.getMenuQr().then((saved) => setTarget(saved ?? defaultMenuQr), (err) => setStatus((err as Error).message));
-    QRCode.toString(menuQrUrl, { ...qrOptions, type: "svg" }).then(setSvg);
+    menuQrSvg().then(setSvg, (err) => setStatus((err as Error).message));
   }, [store, role]);
 
   if (role !== "master") return <p className="admin-hint">{q.onlyMaster}</p>;
@@ -63,13 +60,15 @@ export default function QrPage() {
             <button
               type="button"
               className="btn btn--primary"
-              onClick={async () => download(await QRCode.toDataURL(menuQrUrl, { ...qrOptions, width: 1200 }), "douiret-lqimat-menu-qr.png")}
+              disabled={!svg}
+              onClick={async () => download(await menuQrPng(svg), "douiret-lqimat-menu-qr.png")}
             >
               {q.downloadPng}
             </button>
             <button
               type="button"
               className="btn btn--ghost"
+              disabled={!svg}
               onClick={() => download(URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })), "douiret-lqimat-menu-qr.svg")}
             >
               {q.downloadSvg}

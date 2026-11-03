@@ -1,12 +1,11 @@
 "use client";
 
 import { Playfair_Display } from "next/font/google";
-import QRCode from "qrcode";
 import { useEffect, useRef, useState } from "react";
 import { useAdmin } from "@/components/admin/AdminContext";
 import { Poster } from "@/components/admin/Poster";
 import { isList, posterContent, posters, posterThemes, type PosterContent, type PosterItem, type PosterKind, type PosterTheme } from "@/lib/admin/posters";
-import { menuQrUrl } from "@/lib/site/qr";
+import { menuQrSvg } from "@/lib/admin/menuQr";
 import "../../../posters.css";
 
 // The French lines on the posters use Playfair Display, like the poster designs.
@@ -35,7 +34,7 @@ export default function PostersPage() {
       },
       (err) => setStatus((err as Error).message),
     );
-    QRCode.toString(menuQrUrl, { type: "svg", errorCorrectionLevel: "M", margin: 4, color: { dark: "#72252A", light: "#FFFFFF" } }).then(setQrSvg);
+    menuQrSvg().then(setQrSvg, (err) => setStatus((err as Error).message));
   }, [store, role]);
 
   // Print once the posters to print are on the page.
