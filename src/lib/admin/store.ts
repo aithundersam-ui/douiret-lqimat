@@ -1,6 +1,7 @@
 import type { HomeContent } from "@/lib/site/content";
 import type { MenuQrTarget } from "@/lib/site/qr";
 import type { BusinessDetails } from "./invoices";
+import type { PosterContent, PosterKind } from "./posters";
 import type { Member, MemberChanges, Range, StaffRole, TableName, Tables } from "./types";
 
 export type NewRow<T extends TableName> = Omit<Tables[T], "id">;
@@ -30,6 +31,9 @@ export interface Store {
   /** Which menu the printed QR code opens (null if never saved). Only the master admin can change it. */
   getMenuQr(): Promise<MenuQrTarget | null>;
   saveMenuQr(target: MenuQrTarget): Promise<void>;
+  /** The shop posters' changed texts, by poster. Only the master admin can change them. */
+  getPosters(): Promise<Partial<Record<PosterKind, PosterContent>>>;
+  savePoster(id: PosterKind, content: PosterContent): Promise<void>;
   /** The signed-in person's role: only the master admin manages accounts. */
   currentRole(): Promise<StaffRole>;
   /** Staff accounts, master admin only. `me` is the signed-in account's id. */

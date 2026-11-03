@@ -45,6 +45,7 @@ export function AdminShell({ locale, children }: { locale: AdminLocale; children
     { href: `${base}/website/`, label: t.nav.website },
     ...(role === "master"
       ? [
+          { href: `${base}/posters/`, label: t.nav.posters },
           { href: `${base}/qr/`, label: t.nav.qr },
           { href: `${base}/members/`, label: t.nav.members },
         ]
