@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { HomeContent } from "@/lib/site/content";
+import type { MenuQrTarget } from "@/lib/site/qr";
 import type { BusinessDetails } from "./invoices";
 import type { NewRow, Store } from "./store";
 import { dateColumn, type Member, type Range, type StaffRole, type TableName, type Tables } from "./types";
@@ -121,6 +122,21 @@ export function createSupabaseStore(url: string, key: string): Store {
           .from("settings")
           .upsert({ key: "business", value: details, updated_at: new Date().toISOString() } as never, { onConflict: "key" }),
       );
+    },
+
+    async getMenuQr() {
+      const rows = check(await db.from("qr_links").select("lang, section").eq("id", "menu").limit(1));
+      return (rows?.[0] as MenuQrTarget | undefined) ?? null;
+    },
+
+    async saveMenuQr(target) {
+      const saved = check(
+        await db
+          .from("qr_links")
+          .upsert({ id: "menu", ...target, updated_at: new Date().toISOString() } as never, { onConflict: "id" })
+          .select("id"),
+      );
+      if (!saved?.length) throw new Error("Only the master admin can change the QR code.");
     },
 
     async uploadImage(image) {

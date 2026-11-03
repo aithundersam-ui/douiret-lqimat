@@ -1,6 +1,7 @@
 import { products as menu } from "@/data/menu";
 import { team as defaultTeam } from "@/data/team";
 import type { HomeContent, ProductRow, TeamRow } from "@/lib/site/content";
+import type { MenuQrTarget } from "@/lib/site/qr";
 import { addDays, isoDay } from "./dates";
 import type { BusinessDetails } from "./invoices";
 import type { NewRow, Store } from "./store";
@@ -10,7 +11,7 @@ import { dateColumn, type DailyCount, type Member, type Range, type TableName, t
 // every screen has something to show. Used until Supabase is configured.
 
 const KEY = "douiret-demo-v4";
-type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent; business?: BusinessDetails; members?: Member[] };
+type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent; business?: BusinessDetails; members?: Member[]; menu_qr?: MenuQrTarget };
 
 function id() {
   return Math.random().toString(36).slice(2, 10);
@@ -143,6 +144,15 @@ export function readDemoSiteParts(): { content?: HomeContent; products: ProductR
   }
 }
 
+/** The demo's menu QR choice, for the /qr/ page. */
+export function readDemoMenuQr(): MenuQrTarget | null {
+  try {
+    return (JSON.parse(localStorage.getItem(KEY) ?? "{}") as Data).menu_qr ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function createDemoStore(): Store {
   let data = load();
   save();
@@ -241,6 +251,13 @@ export function createDemoStore(): Store {
     },
     async saveBusiness(details) {
       data.business = details;
+      save();
+    },
+    async getMenuQr() {
+      return data.menu_qr ?? null;
+    },
+    async saveMenuQr(target) {
+      data.menu_qr = target;
       save();
     },
     async uploadImage(image) {
