@@ -1149,3 +1149,63 @@ button.btn {
     grid-template-columns: 16rem 1fr;
   }
 }
+
+/* Posters screen */
+.admin-posters {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+.admin-posters .poster-preview {
+  order: -1;
+}
+
+.admin-posters__form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-posters__form > label,
+.admin-posters__row label {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.admin-posters__label {
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.admin-posters__list {
+  border: 1px solid #f1e7e3;
+  border-radius: 12px;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-posters__list legend {
+  font-weight: 700;
+  padding-inline: 0.3rem;
+}
+
+.admin-posters__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  align-items: end;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1e7e3;
+}
+
+@media (min-width: 900px) {
+  .admin-posters {
+    grid-template-columns: minmax(0, 1fr) 420px;
+  }
+  .admin-posters .poster-preview {
+    order: 0;
+    position: sticky;
+    top: 1rem;
+  }
+}

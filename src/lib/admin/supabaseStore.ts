@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { HomeContent } from "@/lib/site/content";
 import type { MenuQrTarget } from "@/lib/site/qr";
 import type { BusinessDetails } from "./invoices";
+import type { PosterContent, PosterKind } from "./posters";
 import type { NewRow, Store } from "./store";
 import { dateColumn, type Member, type Range, type StaffRole, type TableName, type Tables } from "./types";
 
@@ -137,6 +138,21 @@ export function createSupabaseStore(url: string, key: string): Store {
           .select("id"),
       );
       if (!saved?.length) throw new Error("Only the master admin can change the QR code.");
+    },
+
+    async getPosters() {
+      const rows = check(await db.from("posters").select("id, content")) as { id: PosterKind; content: PosterContent }[] | null;
+      return Object.fromEntries((rows ?? []).map((r) => [r.id, r.content]));
+    },
+
+    async savePoster(id, content) {
+      const saved = check(
+        await db
+          .from("posters")
+          .upsert({ id, content, updated_at: new Date().toISOString() } as never, { onConflict: "id" })
+          .select("id"),
+      );
+      if (!saved?.length) throw new Error("Only the master admin can change the posters.");
     },
 
     async uploadImage(image) {

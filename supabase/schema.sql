@@ -208,6 +208,21 @@ create policy "master changes qr links" on public.qr_links for update to authent
 drop policy if exists "master adds qr links" on public.qr_links;
 create policy "master adds qr links" on public.qr_links for insert to authenticated with check (public.is_master());
 
+-- The shop posters' texts as changed on the Posters screen (posters never changed keep their original texts).
+-- Staff can read them; only the master admin can change them.
+create table if not exists public.posters (
+  id text primary key,
+  content jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.posters enable row level security;
+drop policy if exists "staff read posters" on public.posters;
+create policy "staff read posters" on public.posters for select to authenticated using (public.is_active_staff());
+drop policy if exists "master changes posters" on public.posters;
+create policy "master changes posters" on public.posters for update to authenticated using (public.is_master()) with check (public.is_master());
+drop policy if exists "master adds posters" on public.posters;
+create policy "master adds posters" on public.posters for insert to authenticated with check (public.is_master());
+
 -- Each staff member can read their own profile (to know if they are master). Nobody can change it from the app.
 alter table public.staff_profiles enable row level security;
 drop policy if exists "read own profile" on public.staff_profiles;

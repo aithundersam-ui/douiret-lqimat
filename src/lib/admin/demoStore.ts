@@ -4,6 +4,7 @@ import type { HomeContent, ProductRow, TeamRow } from "@/lib/site/content";
 import type { MenuQrTarget } from "@/lib/site/qr";
 import { addDays, isoDay } from "./dates";
 import type { BusinessDetails } from "./invoices";
+import type { PosterContent, PosterKind } from "./posters";
 import type { NewRow, Store } from "./store";
 import { dateColumn, type DailyCount, type Member, type Range, type TableName, type Tables } from "./types";
 
@@ -11,7 +12,7 @@ import { dateColumn, type DailyCount, type Member, type Range, type TableName, t
 // every screen has something to show. Used until Supabase is configured.
 
 const KEY = "douiret-demo-v4";
-type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent; business?: BusinessDetails; members?: Member[]; menu_qr?: MenuQrTarget };
+type Data = { [T in TableName]: Tables[T][] } & { site_content?: HomeContent; business?: BusinessDetails; members?: Member[]; menu_qr?: MenuQrTarget; posters?: Partial<Record<PosterKind, PosterContent>> };
 
 function id() {
   return Math.random().toString(36).slice(2, 10);
@@ -258,6 +259,13 @@ export function createDemoStore(): Store {
     },
     async saveMenuQr(target) {
       data.menu_qr = target;
+      save();
+    },
+    async getPosters() {
+      return data.posters ?? {};
+    },
+    async savePoster(id, content) {
+      data.posters = { ...data.posters, [id]: content };
       save();
     },
     async uploadImage(image) {
