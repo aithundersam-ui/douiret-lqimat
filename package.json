@@ -3,12 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/copy-ghostscript.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/copy-ghostscript.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@okathira/ghostpdl-wasm": "1.1.0",
     "@supabase/supabase-js": "2.117.2",
     "next": "15.5.28",
     "qrcode": "1.5.4",

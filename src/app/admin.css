@@ -1209,3 +1209,30 @@ button.btn {
     top: 1rem;
   }
 }
+
+/* Posters: turning a saved PDF into a CMYK PDF for a print shop. */
+.admin-cmyk {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.admin-cmyk ol {
+  margin: 0;
+  padding-inline-start: 1.4rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.admin-cmyk label.btn {
+  cursor: pointer;
+}
+
+.admin-cmyk .is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.admin-cmyk__credit {
+  font-size: 0.8rem;
+}

@@ -4,6 +4,7 @@ import { Playfair_Display } from "next/font/google";
 import { useEffect, useRef, useState } from "react";
 import { useAdmin } from "@/components/admin/AdminContext";
 import { Poster } from "@/components/admin/Poster";
+import { loadCmykConverter, toCmykPdf } from "@/lib/admin/cmyk";
 import { isList, posterContent, posters, posterThemes, type PosterContent, type PosterItem, type PosterKind, type PosterTheme } from "@/lib/admin/posters";
 import { menuQrSvg } from "@/lib/admin/menuQr";
 import "../../../posters.css";
@@ -200,12 +201,94 @@ export default function PostersPage() {
             <Poster kind={kind} theme={theme} content={content} qrSvg={qrSvg} />
           </Preview>
         </div>
+
+        <CmykSection />
       </div>
 
       <div className="poster-print">
         {printing?.map((id) => <Poster key={id} kind={id} theme={theme} content={drafts[id]} qrSvg={qrSvg} />)}
       </div>
     </div>
+  );
+}
+
+/** Turns a poster PDF saved from the print window into a CMYK PDF for a print shop. */
+function CmykSection() {
+  const { t } = useAdmin();
+  const c = t.posters.cmyk;
+  const [state, setState] = useState<"" | "loading" | "converting" | "done" | string>("");
+  const [file, setFile] = useState("");
+
+  async function convert(input: File) {
+    setFile(input.name);
+    const bytes = await input.arrayBuffer();
+    if (new TextDecoder().decode(bytes.slice(0, 5)) !== "%PDF-") return setState(c.notPdf);
+    setState("loading");
+    try {
+      await loadCmykConverter();
+      setState("converting");
+      // Let the status show before the conversion keeps the page busy.
+      await new Promise((r) => setTimeout(r, 50));
+      const out = await toCmykPdf(bytes);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([out as BlobPart], { type: "application/pdf" }));
+      a.download = `${input.name.replace(/\.pdf$/i, "")} - CMYK.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
+      setState("done");
+    } catch (err) {
+      setState((err as Error).message);
+    }
+  }
+
+  const busy = state === "loading" || state === "converting";
+  return (
+    <section className="admin-card admin-section admin-cmyk">
+      <h2>{c.title}</h2>
+      <p className="admin-hint">{c.intro}</p>
+      <ol>
+        <li>{c.step1}</li>
+        <li>{c.step2}</li>
+      </ol>
+      <div className="admin-form__actions">
+        <label className={`btn btn--primary${busy ? " is-disabled" : ""}`}>
+          {c.choose}
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            hidden
+            disabled={busy}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = "";
+              if (f) convert(f);
+            }}
+          />
+        </label>
+        {busy && <span role="status">{state === "loading" ? c.loading : c.converting}</span>}
+        {state === "done" && (
+          <span role="status">
+            ✓ {c.done} <bdi dir="ltr">({file.replace(/\.pdf$/i, "")} - CMYK.pdf)</bdi>
+          </span>
+        )}
+      </div>
+      {!["", "loading", "converting", "done"].includes(state) && (
+        <p className="admin-error" role="alert">
+          {t.common.error} {state}
+        </p>
+      )}
+      <p className="admin-hint">{c.note}</p>
+      <p className="admin-hint admin-cmyk__credit">
+        {c.credit}:{" "}
+        <a href="/vendor/ghostscript/LICENSE.txt" target="_blank" rel="noreferrer">
+          {c.licence}
+        </a>
+        {" · "}
+        <a href="https://www.npmjs.com/package/@okathira/ghostpdl-wasm" target="_blank" rel="noreferrer">
+          {c.source}
+        </a>
+      </p>
+    </section>
   );
 }
 
