@@ -58,26 +58,37 @@ export async function menuQrSvg(): Promise<string> {
   const size = modules.size;
   const full = size + margin * 2;
 
-  // The middle box covers about 30% of the code's width, kept centred on the module grid.
+  // The logo sits on a rounded box covering about 30% of the code's width, centred on the
+  // module grid. Squares are cleared only where they touch the box (plus a small gap), so
+  // the code keeps hugging its rounded corners.
   let box = Math.round(size * 0.3);
   if (box % 2 !== size % 2) box += 1;
   const start = (size - box) / 2;
-  const covered = (r: number, c: number) => r >= start && r < start + box && c >= start && c < start + box;
+  const radius = box * 0.24;
+  const gap = 0.5;
+  const lo = start + radius;
+  const hi = start + box - radius;
+  const covered = (r: number, c: number) => {
+    const dx = Math.max(0, lo - (c + 1), c - hi);
+    const dy = Math.max(0, lo - (r + 1), r - hi);
+    return Math.hypot(dx, dy) < radius + gap;
+  };
 
   let path = "";
   for (let r = 0; r < size; r++)
     for (let c = 0; c < size; c++) if (modules.get(r, c) && !covered(r, c)) path += `M${c + margin} ${r + margin}h1v1h-1z`;
 
-  const inset = 0.5;
-  const x = start + margin + inset;
-  const w = box - inset * 2;
-  const pad = w * 0.08;
+  const stroke = 0.35;
+  const x = start + margin + stroke / 2;
+  const w = box - stroke;
+  const pad = box * 0.09;
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${full} ${full}" shape-rendering="crispEdges">` +
-    `<rect width="${full}" height="${full}" fill="#fff"/>` +
+    // Rounded inside the quiet zone, so the corners never poke out of a rounded card.
+    `<rect width="${full}" height="${full}" rx="${margin * 0.75}" fill="#fff" shape-rendering="geometricPrecision"/>` +
     `<path fill="${burgundy}" d="${path}"/>` +
-    `<rect x="${x}" y="${x}" width="${w}" height="${w}" rx="${w * 0.2}" fill="#fff" shape-rendering="geometricPrecision"/>` +
-    `<image x="${x + pad}" y="${x + pad}" width="${w - pad * 2}" height="${w - pad * 2}" xlink:href="${logo}"/>` +
+    `<rect x="${x}" y="${x}" width="${w}" height="${w}" rx="${radius - stroke / 2}" fill="#fff" stroke="${burgundy}" stroke-width="${stroke}" shape-rendering="geometricPrecision"/>` +
+    `<image x="${start + margin + pad}" y="${start + margin + pad}" width="${box - pad * 2}" height="${box - pad * 2}" xlink:href="${logo}"/>` +
     `</svg>`
   );
 }

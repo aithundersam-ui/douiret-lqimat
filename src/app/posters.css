@@ -348,16 +348,18 @@
 
 .poster__qr {
   background: #fff;
-  padding: 1mm;
+  padding: 4mm;
   border-radius: 8mm;
+  overflow: hidden;
   border: 1mm solid var(--frame);
   margin-top: 4mm;
 }
 
 .poster__qr svg {
   display: block;
-  width: 104mm;
-  height: 104mm;
+  width: 98mm;
+  height: 98mm;
+  border-radius: 4mm;
 }
 
 .poster__url {
